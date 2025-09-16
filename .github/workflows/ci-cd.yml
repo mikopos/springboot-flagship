@@ -1,0 +1,258 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Run tests for ${{ matrix.service }}
+      run: |
+        cd services/${{ matrix.service }}
+        mvn clean test
+    
+    - name: Generate test report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Test Results (${{ matrix.service }})
+        path: services/${{ matrix.service }}/target/surefire-reports/*.xml
+        reporter: java-junit
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Build ${{ matrix.service }}
+      run: |
+        cd services/${{ matrix.service }}
+        mvn clean package -DskipTests
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: services/${{ matrix.service }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  security-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:latest
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  deploy-staging:
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to staging
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/postgres-secret.yaml
+        kubectl apply -f k8s/prometheus-scrape-config.yaml
+        kubectl apply -f k8s/api-gateway-deployment.yaml
+        kubectl apply -f k8s/user-service-deployment.yaml
+        kubectl apply -f k8s/order-service-deployment.yaml
+        kubectl apply -f k8s/payment-service-deployment.yaml
+        kubectl apply -f k8s/inventory-service-deployment.yaml
+        kubectl apply -f k8s/streaming-service-deployment.yaml
+    
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/api-gateway -n flagship --timeout=300s
+        kubectl rollout status deployment/user-service -n flagship --timeout=300s
+        kubectl rollout status deployment/order-service -n flagship --timeout=300s
+        kubectl rollout status deployment/payment-service -n flagship --timeout=300s
+        kubectl rollout status deployment/inventory-service -n flagship --timeout=300s
+        kubectl rollout status deployment/streaming-service -n flagship --timeout=300s
+
+  deploy-production:
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to production
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/postgres-secret.yaml
+        kubectl apply -f k8s/prometheus-scrape-config.yaml
+        kubectl apply -f k8s/api-gateway-deployment.yaml
+        kubectl apply -f k8s/user-service-deployment.yaml
+        kubectl apply -f k8s/order-service-deployment.yaml
+        kubectl apply -f k8s/payment-service-deployment.yaml
+        kubectl apply -f k8s/inventory-service-deployment.yaml
+        kubectl apply -f k8s/streaming-service-deployment.yaml
+    
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/api-gateway -n flagship --timeout=300s
+        kubectl rollout status deployment/user-service -n flagship --timeout=300s
+        kubectl rollout status deployment/order-service -n flagship --timeout=300s
+        kubectl rollout status deployment/payment-service -n flagship --timeout=300s
+        kubectl rollout status deployment/inventory-service -n flagship --timeout=300s
+        kubectl rollout status deployment/streaming-service -n flagship --timeout=300s
+    
+    - name: Run smoke tests
+      run: |
+        # Wait for services to be ready
+        sleep 30
+        
+        # Test API Gateway health
+        kubectl port-forward service/api-gateway 8081:8081 -n flagship &
+        sleep 10
+        curl -f http://localhost:8081/actuator/health || exit 1
+        
+        # Test User Service health
+        kubectl port-forward service/user-service 8082:8082 -n flagship &
+        sleep 10
+        curl -f http://localhost:8082/actuator/health || exit 1
+        
+        # Test Order Service health
+        kubectl port-forward service/order-service 8083:8083 -n flagship &
+        sleep 10
+        curl -f http://localhost:8083/actuator/health || exit 1
+        
+        # Test Payment Service health
+        kubectl port-forward service/payment-service 8084:8084 -n flagship &
+        sleep 10
+        curl -f http://localhost:8084/actuator/health || exit 1
+        
+        # Test Inventory Service health
+        kubectl port-forward service/inventory-service 8085:8085 -n flagship &
+        sleep 10
+        curl -f http://localhost:8085/actuator/health || exit 1
+        
+        # Test Streaming Service health
+        kubectl port-forward service/streaming-service 8086:8086 -n flagship &
+        sleep 10
+        curl -f http://localhost:8086/actuator/health || exit 1
+
+  notify:
+    needs: [deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notify deployment status
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: always()
