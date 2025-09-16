@@ -119,11 +119,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>com.redis</groupId>
-      <artifactId>testcontainers-redis</artifactId>
-      <scope>test</scope>
-    </dependency>
 
   </dependencies>
 
