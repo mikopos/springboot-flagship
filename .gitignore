@@ -1,0 +1,9 @@
+.DS_Store
+.idea
+.vscode
+/services/api-gateway/target/
+/services/inventory-service/target/
+/services/order-service/target/
+/services/payment-service/target/
+/services/streaming-service/target/
+/services/user-service/target/
