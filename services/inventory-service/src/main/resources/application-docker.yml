@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/flagship_db
+    username: flagship_user
+    password: flagship_password
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/flagship
+          jwk-set-uri: http://keycloak:8080/realms/flagship/protocol/openid-connect/certs
+  
+  kafka:
+    bootstrap-servers: kafka:9092
+
+  redis:
+    host: redis
+    port: 6379
+
+logging:
+  level:
+    com.flagship.inventory: INFO
+    org.springframework.security: WARN
+    org.springframework.kafka: WARN
+    org.springframework.cache: WARN
