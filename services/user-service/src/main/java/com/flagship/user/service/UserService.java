@@ -1,7 +1,6 @@
 package com.flagship.user.service;
 
 import com.flagship.user.event.UserEvent;
-import com.flagship.user.event.UserEventType;
 import com.flagship.user.model.User;
 import com.flagship.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +46,7 @@ public class UserService {
     userActivityService.logActivity(savedUser, UserActivityService.ActivityType.PROFILE_UPDATE,
         "User account created", null, null);
 
-    publishUserEvent(savedUser, UserEventType.USER_CREATED);
+    publishUserEvent(savedUser, UserEvent.UserEventType.USER_CREATED);
 
     log.info("User created successfully with ID: {}", savedUser.getId());
     return savedUser;
@@ -90,7 +89,7 @@ public class UserService {
     userActivityService.logActivity(savedUser, UserActivityService.ActivityType.PROFILE_UPDATE,
         "User profile updated", null, null);
 
-    publishUserEvent(savedUser, UserEventType.USER_UPDATED);
+    publishUserEvent(savedUser, UserEvent.UserEventType.USER_UPDATED);
 
     log.info("User updated successfully with ID: {}", savedUser.getId());
     return savedUser;
@@ -122,7 +121,7 @@ public class UserService {
     userActivityService.logActivity(user, UserActivityService.ActivityType.ACCOUNT_DEACTIVATED,
         "User account deactivated", null, null);
 
-    publishUserEvent(user, UserEventType.USER_DEACTIVATED);
+    publishUserEvent(user, UserEvent.UserEventType.USER_DEACTIVATED);
 
     log.info("User deactivated successfully with ID: {}", user.getId());
   }
@@ -139,7 +138,7 @@ public class UserService {
     userActivityService.logActivity(user, UserActivityService.ActivityType.ACCOUNT_ACTIVATED,
         "User account activated", null, null);
 
-    publishUserEvent(user, UserEventType.USER_ACTIVATED);
+    publishUserEvent(user, UserEvent.UserEventType.USER_ACTIVATED);
 
     log.info("User activated successfully with ID: {}", user.getId());
   }
@@ -170,7 +169,7 @@ public class UserService {
     return userRepository.findActiveUsersWithRecentActivity(threshold);
   }
 
-  private void publishUserEvent(User user, UserEventType eventType) {
+  private void publishUserEvent(User user, UserEvent.UserEventType eventType) {
     try {
       UserEvent event = UserEvent.builder()
           .userId(user.getId())

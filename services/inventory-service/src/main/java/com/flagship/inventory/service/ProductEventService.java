@@ -62,7 +62,7 @@ public class ProductEventService {
     log.debug("Logged product event: {} for product: {} with metadata", eventType, product.getId());
   }
 
-  public void logEvent(Product product, ProductEvent.EventType eventType, String description,
+  public void logEventWithLocation(Product product, ProductEvent.EventType eventType, String description,
       Integer previousQuantity, Integer newQuantity, String location) {
     ProductEvent event = ProductEvent.builder()
         .product(product)

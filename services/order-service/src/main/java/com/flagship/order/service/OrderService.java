@@ -3,7 +3,6 @@ package com.flagship.order.service;
 import com.flagship.order.event.OrderEvent;
 import com.flagship.order.model.Order;
 import com.flagship.order.model.OrderItem;
-import com.flagship.order.model.OrderEvent as OrderEventEntity;
 import com.flagship.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.ORDER_CREATED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.ORDER_CREATED,
         "Order created", null, null);
 
     publishOrderEvent(savedOrder, OrderEvent.OrderEventType.ORDER_CREATED);
@@ -81,7 +80,7 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.STATUS_CHANGED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.STATUS_CHANGED,
         "Order status changed from " + previousStatus + " to " + newStatus,
         previousStatus.toString(), newStatus.toString());
 
@@ -102,7 +101,7 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.PAYMENT_PAID,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.PAYMENT_PAID,
         "Payment status changed from " + previousStatus + " to " + newStatus,
         previousStatus.toString(), newStatus.toString());
 
@@ -132,7 +131,7 @@ public class OrderService {
     order.addItem(item);
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.ITEM_ADDED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.ITEM_ADDED,
         "Item added: " + item.getProductName(), null, null);
 
     publishOrderEvent(savedOrder, OrderEvent.OrderEventType.ITEM_ADDED);
@@ -159,7 +158,7 @@ public class OrderService {
     order.removeItem(itemToRemove);
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.ITEM_REMOVED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.ITEM_REMOVED,
         "Item removed: " + itemToRemove.getProductName(), null, null);
 
     publishOrderEvent(savedOrder, OrderEvent.OrderEventType.ITEM_REMOVED);
@@ -181,7 +180,7 @@ public class OrderService {
     order.updateStatus(Order.OrderStatus.CANCELLED);
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.ORDER_CANCELLED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.ORDER_CANCELLED,
         "Order cancelled", null, null);
 
     publishOrderEvent(savedOrder, OrderEvent.OrderEventType.ORDER_CANCELLED);
@@ -201,7 +200,7 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    orderEventService.logEvent(savedOrder, OrderEventEntity.EventType.TRACKING_UPDATED,
+    orderEventService.logEvent(savedOrder, com.flagship.order.model.OrderEvent.EventType.TRACKING_UPDATED,
         "Tracking updated: " + trackingNumber, null, null);
 
     publishOrderEvent(savedOrder, OrderEvent.OrderEventType.TRACKING_UPDATED);

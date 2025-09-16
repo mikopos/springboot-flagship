@@ -2,7 +2,6 @@ package com.flagship.payment.service;
 
 import com.flagship.payment.event.PaymentEvent;
 import com.flagship.payment.model.Payment;
-import com.flagship.payment.model.PaymentEvent as PaymentEventEntity;
 import com.flagship.payment.repository.PaymentRepository;
 import com.flagship.payment.client.PaymentProviderClient;
 import lombok.RequiredArgsConstructor;
