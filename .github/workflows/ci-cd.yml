@@ -161,11 +161,33 @@ jobs:
         output: 'trivy-results.sarif'
       continue-on-error: true
     
+    - name: Debug - List files after Trivy scan
+      run: |
+        echo "Files in current directory:"
+        ls -la
+        echo "Checking for SARIF file:"
+        if [ -f "trivy-results.sarif" ]; then
+          echo "SARIF file exists"
+          ls -la trivy-results.sarif
+        else
+          echo "SARIF file does not exist"
+        fi
+    
+    - name: Check for SARIF file
+      id: check-sarif
+      run: |
+        if [ -f "trivy-results.sarif" ]; then
+          echo "sarif-exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "sarif-exists=false" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      if: steps.check-sarif.outputs.sarif-exists == 'true'
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
 
   deploy-staging:
     needs: [build, security-scan]
