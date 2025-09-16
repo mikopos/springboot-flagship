@@ -1,0 +1,112 @@
+@startuml Order Processing Sequence
+
+title Order Processing Sequence Diagram
+
+' Define colors
+!define PRIMARY_COLOR #2E86AB
+!define SECONDARY_COLOR #A23B72
+!define TERTIARY_COLOR #F18F01
+!define SUCCESS_COLOR #C73E1D
+!define INFO_COLOR #6C757D
+
+actor "Client" as Client #6C757D
+participant "API Gateway" as APIGateway #2E86AB
+participant "User Service" as UserService #2E86AB
+participant "Order Service" as OrderService #2E86AB
+participant "Payment Service" as PaymentService #2E86AB
+participant "Inventory Service" as InventoryService #2E86AB
+participant "Streaming Service" as StreamingService #2E86AB
+participant "Kafka" as Kafka #F18F01
+participant "Keycloak" as Keycloak #A23B72
+participant "Payment Provider" as PaymentProvider #A23B72
+database "PostgreSQL" as PostgreSQL #6C757D
+database "Redis" as Redis #C73E1D
+
+== Authentication ==
+Client -> APIGateway : 1. Login Request
+APIGateway -> Keycloak : 2. Authenticate User
+Keycloak -> APIGateway : 3. JWT Token
+APIGateway -> Client : 4. JWT Token
+
+== Order Creation ==
+Client -> APIGateway : 5. Create Order (JWT)
+APIGateway -> Keycloak : 6. Validate JWT
+Keycloak -> APIGateway : 7. JWT Valid
+APIGateway -> OrderService : 8. Create Order Request
+
+OrderService -> UserService : 9. Validate User
+UserService -> PostgreSQL : 10. Check User
+PostgreSQL -> UserService : 11. User Data
+UserService -> OrderService : 12. User Valid
+
+OrderService -> InventoryService : 13. Check Inventory
+InventoryService -> Redis : 14. Check Cache
+Redis -> InventoryService : 15. Cache Miss
+InventoryService -> PostgreSQL : 16. Check Stock
+PostgreSQL -> InventoryService : 17. Stock Data
+InventoryService -> Redis : 18. Update Cache
+InventoryService -> OrderService : 19. Stock Available
+
+OrderService -> PostgreSQL : 20. Save Order
+PostgreSQL -> OrderService : 21. Order Saved
+OrderService -> Kafka : 22. Publish OrderCreated Event
+OrderService -> APIGateway : 23. Order Created
+APIGateway -> Client : 24. Order Response
+
+== Payment Processing ==
+Kafka -> PaymentService : 25. OrderCreated Event
+PaymentService -> PostgreSQL : 26. Check Payment Status
+PostgreSQL -> PaymentService : 27. No Payment Found
+PaymentService -> PaymentProvider : 28. Process Payment
+PaymentProvider -> PaymentService : 29. Payment Result
+PaymentService -> PostgreSQL : 30. Save Payment
+PostgreSQL -> PaymentService : 31. Payment Saved
+PaymentService -> Kafka : 32. Publish PaymentProcessed Event
+
+== Inventory Update ==
+Kafka -> InventoryService : 33. OrderCreated Event
+InventoryService -> PostgreSQL : 34. Update Stock
+PostgreSQL -> InventoryService : 35. Stock Updated
+InventoryService -> Redis : 36. Invalidate Cache
+InventoryService -> Kafka : 37. Publish StockUpdated Event
+
+== Real-time Updates ==
+Kafka -> StreamingService : 38. OrderCreated Event
+StreamingService -> Client : 39. Order Created (SSE)
+
+Kafka -> StreamingService : 40. PaymentProcessed Event
+StreamingService -> Client : 41. Payment Processed (SSE)
+
+Kafka -> StreamingService : 42. StockUpdated Event
+StreamingService -> Client : 43. Stock Updated (SSE)
+
+== Order Status Update ==
+PaymentService -> OrderService : 44. Payment Result
+OrderService -> PostgreSQL : 45. Update Order Status
+PostgreSQL -> OrderService : 46. Order Updated
+OrderService -> Kafka : 47. Publish OrderStatusChanged Event
+
+Kafka -> StreamingService : 48. OrderStatusChanged Event
+StreamingService -> Client : 49. Order Status Updated (SSE)
+
+== Error Handling ==
+alt Payment Failed
+    PaymentProvider -> PaymentService : 50. Payment Failed
+    PaymentService -> PostgreSQL : 51. Save Failed Payment
+    PaymentService -> Kafka : 52. Publish PaymentFailed Event
+    Kafka -> OrderService : 53. PaymentFailed Event
+    OrderService -> PostgreSQL : 54. Update Order Status
+    OrderService -> Kafka : 55. Publish OrderCancelled Event
+    Kafka -> StreamingService : 56. OrderCancelled Event
+    StreamingService -> Client : 57. Order Cancelled (SSE)
+end
+
+alt Inventory Insufficient
+    InventoryService -> OrderService : 58. Insufficient Stock
+    OrderService -> PostgreSQL : 59. Cancel Order
+    OrderService -> Kafka : 60. Publish OrderCancelled Event
+    Kafka -> StreamingService : 61. OrderCancelled Event
+    StreamingService -> Client : 62. Order Cancelled (SSE)
+end
+
+@enduml

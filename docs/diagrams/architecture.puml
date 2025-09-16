@@ -1,0 +1,143 @@
+@startuml Flagship E-Commerce Architecture
+
+title Flagship E-Commerce Microservices Architecture
+
+' Define colors
+!define PRIMARY_COLOR #2E86AB
+!define SECONDARY_COLOR #A23B72
+!define TERTIARY_COLOR #F18F01
+!define SUCCESS_COLOR #C73E1D
+!define INFO_COLOR #6C757D
+
+' External Systems
+component "Internet" as Internet #6C757D
+cloud "Keycloak" as Keycloak #2E86AB
+cloud "Payment Provider" as PaymentProvider #A23B72
+
+' API Gateway
+package "API Gateway" as APIGateway #2E86AB {
+    component "Spring Cloud Gateway" as Gateway
+    component "OAuth2 Resource Server" as OAuth2
+    component "Circuit Breaker" as CircuitBreaker
+    component "Rate Limiter" as RateLimiter
+}
+
+' Microservices
+package "User Service" as UserService #2E86AB {
+    component "User Controller" as UserController
+    component "User Service" as UserServiceLayer
+    component "User Repository" as UserRepository
+    database "PostgreSQL\n(Users)" as UserDB #6C757D
+}
+
+package "Order Service" as OrderService #2E86AB {
+    component "Order Controller" as OrderController
+    component "Order Service" as OrderServiceLayer
+    component "Order Repository" as OrderRepository
+    database "PostgreSQL\n(Orders)" as OrderDB #6C757D
+}
+
+package "Payment Service" as PaymentService #2E86AB {
+    component "Payment Controller" as PaymentController
+    component "Payment Service" as PaymentServiceLayer
+    component "Idempotency Service" as IdempotencyService
+    component "Resilience4j" as Resilience4j
+    database "PostgreSQL\n(Payments)" as PaymentDB #6C757D
+}
+
+package "Inventory Service" as InventoryService #2E86AB {
+    component "Inventory Controller" as InventoryController
+    component "Inventory Service" as InventoryServiceLayer
+    component "Product Repository" as ProductRepository
+    database "PostgreSQL\n(Inventory)" as InventoryDB #6C757D
+    database "Redis Cache" as RedisCache #C73E1D
+}
+
+package "Streaming Service" as StreamingService #2E86AB {
+    component "Streaming Controller" as StreamingController
+    component "Streaming Service" as StreamingServiceLayer
+    component "WebFlux" as WebFlux
+    component "Server-Sent Events" as SSE
+}
+
+' Message Broker
+package "Kafka Cluster" as KafkaCluster #F18F01 {
+    component "Order Events" as OrderEvents
+    component "Payment Events" as PaymentEvents
+    component "Inventory Events" as InventoryEvents
+}
+
+' Monitoring
+package "Observability" as Observability #F18F01 {
+    component "Prometheus" as Prometheus
+    component "Grafana" as Grafana
+    component "Micrometer" as Micrometer
+}
+
+' Infrastructure
+package "Infrastructure" as Infrastructure #6C757D {
+    component "Docker" as Docker
+    component "Kubernetes" as Kubernetes
+    component "GitHub Actions" as GitHubActions
+}
+
+' Client Applications
+package "Client Applications" as ClientApps #A23B72 {
+    component "Web App" as WebApp
+    component "Mobile App" as MobileApp
+    component "Admin Dashboard" as AdminDashboard
+}
+
+' Connections
+Internet --> Gateway : HTTPS
+WebApp --> Internet : HTTP/HTTPS
+MobileApp --> Internet : HTTP/HTTPS
+AdminDashboard --> Internet : HTTP/HTTPS
+
+Gateway --> UserController : HTTP
+Gateway --> OrderController : HTTP
+Gateway --> PaymentController : HTTP
+Gateway --> InventoryController : HTTP
+Gateway --> StreamingController : HTTP
+
+UserController --> Keycloak : OAuth2
+OrderController --> Keycloak : OAuth2
+PaymentController --> Keycloak : OAuth2
+InventoryController --> Keycloak : OAuth2
+StreamingController --> Keycloak : OAuth2
+
+PaymentController --> PaymentProvider : HTTP
+
+OrderController --> OrderEvents : Publish
+PaymentController --> PaymentEvents : Publish
+InventoryController --> InventoryEvents : Publish
+
+OrderEvents --> PaymentController : Subscribe
+OrderEvents --> InventoryController : Subscribe
+PaymentEvents --> OrderController : Subscribe
+InventoryEvents --> OrderController : Subscribe
+
+UserController --> UserDB : JPA
+OrderController --> OrderDB : JPA
+PaymentController --> PaymentDB : JPA
+InventoryController --> InventoryDB : JPA
+InventoryController --> RedisCache : Cache
+
+StreamingController --> OrderEvents : Subscribe
+StreamingController --> PaymentEvents : Subscribe
+StreamingController --> InventoryEvents : Subscribe
+
+UserController --> Micrometer : Metrics
+OrderController --> Micrometer : Metrics
+PaymentController --> Micrometer : Metrics
+InventoryController --> Micrometer : Metrics
+StreamingController --> Micrometer : Metrics
+
+Micrometer --> Prometheus : Scrape
+Prometheus --> Grafana : Query
+
+Docker --> Kubernetes : Deploy
+GitHubActions --> Docker : Build
+GitHubActions --> Kubernetes : Deploy
+
+@enduml

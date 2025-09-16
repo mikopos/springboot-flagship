@@ -1,0 +1,113 @@
+@startuml Data Flow Diagram
+
+title Flagship E-Commerce Data Flow
+
+' Define colors
+!define PRIMARY_COLOR #2E86AB
+!define SECONDARY_COLOR #A23B72
+!define TERTIARY_COLOR #F18F01
+!define SUCCESS_COLOR #C73E1D
+!define INFO_COLOR #6C757D
+
+' External Systems
+cloud "Client" as Client #6C757D
+cloud "Keycloak" as Keycloak #2E86AB
+cloud "Payment Provider" as PaymentProvider #A23B72
+
+' API Gateway
+package "API Gateway" as APIGateway #2E86AB {
+    component "Authentication" as Auth
+    component "Routing" as Routing
+    component "Rate Limiting" as RateLimit
+}
+
+' Microservices
+package "User Service" as UserService #2E86AB {
+    component "User Management" as UserMgmt
+    database "User DB" as UserDB #6C757D
+}
+
+package "Order Service" as OrderService #2E86AB {
+    component "Order Processing" as OrderProc
+    database "Order DB" as OrderDB #6C757D
+}
+
+package "Payment Service" as PaymentService #2E86AB {
+    component "Payment Processing" as PaymentProc
+    component "Idempotency" as Idempotency
+    database "Payment DB" as PaymentDB #6C757D
+}
+
+package "Inventory Service" as InventoryService #2E86AB {
+    component "Inventory Management" as InventoryMgmt
+    database "Inventory DB" as InventoryDB #6C757D
+    database "Redis Cache" as RedisCache #C73E1D
+}
+
+package "Streaming Service" as StreamingService #2E86AB {
+    component "Event Streaming" as EventStream
+    component "SSE" as SSE
+}
+
+' Message Broker
+package "Kafka" as Kafka #F18F01 {
+    component "Order Events" as OrderEvents
+    component "Payment Events" as PaymentEvents
+    component "Inventory Events" as InventoryEvents
+}
+
+' Data Flow Sequence
+Client --> APIGateway : 1. Login Request
+APIGateway --> Keycloak : 2. Authenticate
+Keycloak --> APIGateway : 3. JWT Token
+APIGateway --> Client : 4. JWT Token
+
+Client --> APIGateway : 5. Create Order (JWT)
+APIGateway --> OrderService : 6. Create Order
+OrderService --> OrderDB : 7. Save Order
+OrderService --> OrderEvents : 8. Publish OrderCreated
+OrderService --> APIGateway : 9. Order Created
+APIGateway --> Client : 10. Order Response
+
+OrderEvents --> PaymentService : 11. OrderCreated Event
+PaymentService --> PaymentProvider : 12. Process Payment
+PaymentProvider --> PaymentService : 13. Payment Result
+PaymentService --> PaymentDB : 14. Save Payment
+PaymentService --> PaymentEvents : 15. Publish PaymentProcessed
+PaymentService --> OrderService : 16. Payment Result
+
+OrderEvents --> InventoryService : 17. OrderCreated Event
+InventoryService --> RedisCache : 18. Check Cache
+InventoryService --> InventoryDB : 19. Update Stock
+InventoryService --> InventoryEvents : 20. Publish StockUpdated
+InventoryService --> OrderService : 21. Stock Updated
+
+OrderEvents --> StreamingService : 22. OrderCreated Event
+StreamingService --> SSE : 23. Stream Event
+SSE --> Client : 24. Real-time Update
+
+PaymentEvents --> StreamingService : 25. PaymentProcessed Event
+StreamingService --> SSE : 26. Stream Event
+SSE --> Client : 27. Real-time Update
+
+InventoryEvents --> StreamingService : 28. StockUpdated Event
+StreamingService --> SSE : 29. Stream Event
+SSE --> Client : 30. Real-time Update
+
+' Event Flow
+OrderEvents --> OrderEvents : Event Store
+PaymentEvents --> PaymentEvents : Event Store
+InventoryEvents --> InventoryEvents : Event Store
+
+' Cache Flow
+InventoryService --> RedisCache : Cache Read/Write
+RedisCache --> InventoryService : Cache Hit/Miss
+
+' Monitoring Flow
+UserService --> Prometheus : Metrics
+OrderService --> Prometheus : Metrics
+PaymentService --> Prometheus : Metrics
+InventoryService --> Prometheus : Metrics
+StreamingService --> Prometheus : Metrics
+
+@enduml

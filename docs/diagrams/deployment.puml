@@ -1,0 +1,158 @@
+@startuml Deployment Diagram
+
+title Flagship E-Commerce Deployment Architecture
+
+' Define colors
+!define PRIMARY_COLOR #2E86AB
+!define SECONDARY_COLOR #A23B72
+!define TERTIARY_COLOR #F18F01
+!define SUCCESS_COLOR #C73E1D
+!define INFO_COLOR #6C757D
+
+' External Systems
+cloud "Internet" as Internet #6C757D
+cloud "GitHub" as GitHub #A23B72
+cloud "Container Registry" as Registry #F18F01
+
+' Kubernetes Cluster
+package "Kubernetes Cluster" as K8sCluster #2E86AB {
+    
+    ' Namespace
+    package "flagship Namespace" as Namespace #6C757D {
+        
+        ' API Gateway
+        package "API Gateway" as APIGateway #2E86AB {
+            component "Deployment (3 replicas)" as APIDeployment
+            component "Service" as APIService
+            component "HPA" as APIHPA
+        }
+        
+        ' User Service
+        package "User Service" as UserService #2E86AB {
+            component "Deployment (2 replicas)" as UserDeployment
+            component "Service" as UserServiceComponent
+            component "HPA" as UserHPA
+        }
+        
+        ' Order Service
+        package "Order Service" as OrderService #2E86AB {
+            component "Deployment (2 replicas)" as OrderDeployment
+            component "Service" as OrderServiceComponent
+            component "HPA" as OrderHPA
+        }
+        
+        ' Payment Service
+        package "Payment Service" as PaymentService #2E86AB {
+            component "Deployment (2 replicas)" as PaymentDeployment
+            component "Service" as PaymentServiceComponent
+            component "HPA" as PaymentHPA
+        }
+        
+        ' Inventory Service
+        package "Inventory Service" as InventoryService #2E86AB {
+            component "Deployment (2 replicas)" as InventoryDeployment
+            component "Service" as InventoryServiceComponent
+            component "HPA" as InventoryHPA
+        }
+        
+        ' Streaming Service
+        package "Streaming Service" as StreamingService #2E86AB {
+            component "Deployment (2 replicas)" as StreamingDeployment
+            component "Service" as StreamingServiceComponent
+            component "HPA" as StreamingHPA
+        }
+        
+        ' Infrastructure Services
+        package "Infrastructure" as Infrastructure #F18F01 {
+            component "PostgreSQL" as PostgreSQL
+            component "Redis" as Redis
+            component "Kafka" as Kafka
+            component "Zookeeper" as Zookeeper
+        }
+        
+        ' Monitoring
+        package "Monitoring" as Monitoring #C73E1D {
+            component "Prometheus" as Prometheus
+            component "Grafana" as Grafana
+        }
+    }
+}
+
+' CI/CD Pipeline
+package "CI/CD Pipeline" as CICD #A23B72 {
+    component "GitHub Actions" as GitHubActions
+    component "Build" as Build
+    component "Test" as Test
+    component "Security Scan" as SecurityScan
+    component "Deploy" as Deploy
+}
+
+' External Dependencies
+cloud "Keycloak" as Keycloak #2E86AB
+cloud "Payment Provider" as PaymentProvider #A23B72
+
+' Load Balancer
+package "Load Balancer" as LoadBalancer #6C757D {
+    component "Ingress Controller" as IngressController
+    component "SSL Termination" as SSLTermination
+}
+
+' Connections
+Internet --> IngressController : HTTPS
+IngressController --> APIService : HTTP
+
+GitHub --> GitHubActions : Webhook
+GitHubActions --> Build : Trigger
+Build --> Test : Run Tests
+Test --> SecurityScan : Security Check
+SecurityScan --> Deploy : Deploy to K8s
+Deploy --> K8sCluster : Apply Manifests
+
+GitHubActions --> Registry : Push Images
+Registry --> K8sCluster : Pull Images
+
+APIService --> UserServiceComponent : HTTP
+APIService --> OrderServiceComponent : HTTP
+APIService --> PaymentServiceComponent : HTTP
+APIService --> InventoryServiceComponent : HTTP
+APIService --> StreamingServiceComponent : HTTP
+
+UserServiceComponent --> PostgreSQL : JDBC
+OrderServiceComponent --> PostgreSQL : JDBC
+PaymentServiceComponent --> PostgreSQL : JDBC
+InventoryServiceComponent --> PostgreSQL : JDBC
+InventoryServiceComponent --> Redis : Redis Protocol
+
+OrderServiceComponent --> Kafka : Publish/Subscribe
+PaymentServiceComponent --> Kafka : Publish/Subscribe
+InventoryServiceComponent --> Kafka : Publish/Subscribe
+StreamingServiceComponent --> Kafka : Subscribe
+
+Kafka --> Zookeeper : Coordination
+
+UserServiceComponent --> Keycloak : OAuth2
+OrderServiceComponent --> Keycloak : OAuth2
+PaymentServiceComponent --> Keycloak : OAuth2
+InventoryServiceComponent --> Keycloak : OAuth2
+StreamingServiceComponent --> Keycloak : OAuth2
+
+PaymentServiceComponent --> PaymentProvider : HTTP
+
+APIDeployment --> Prometheus : Metrics
+UserDeployment --> Prometheus : Metrics
+OrderDeployment --> Prometheus : Metrics
+PaymentDeployment --> Prometheus : Metrics
+InventoryDeployment --> Prometheus : Metrics
+StreamingDeployment --> Prometheus : Metrics
+
+Prometheus --> Grafana : Query
+
+' Scaling
+APIHPA --> APIDeployment : Scale 3-50
+UserHPA --> UserDeployment : Scale 2-8
+OrderHPA --> OrderDeployment : Scale 2-8
+PaymentHPA --> PaymentDeployment : Scale 2-8
+InventoryHPA --> InventoryDeployment : Scale 2-8
+StreamingHPA --> StreamingDeployment : Scale 2-8
+
+@enduml
