@@ -29,7 +29,7 @@ import java.util.UUID;
 public class PaymentService {
 
   private final PaymentRepository paymentRepository;
-  private final KafkaTemplate<String, PaymentEvent> kafkaTemplate;
+  private final KafkaTemplate<String, com.flagship.payment.event.PaymentEvent> kafkaTemplate;
   private final PaymentEventService paymentEventService;
   private final PaymentProviderClient paymentProviderClient;
   private final IdempotencyService idempotencyService;
@@ -45,10 +45,10 @@ public class PaymentService {
 
     Payment savedPayment = paymentRepository.save(payment);
 
-    paymentEventService.logEvent(savedPayment, PaymentEventEntity.EventType.PAYMENT_CREATED,
+    paymentEventService.logEvent(savedPayment, com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_CREATED,
         "Payment created", null, null);
 
-    publishPaymentEvent(savedPayment, PaymentEvent.PaymentEventType.PAYMENT_CREATED);
+    publishPaymentEvent(savedPayment, com.flagship.payment.event.PaymentEvent.PaymentEventType.PAYMENT_CREATED);
 
     log.info("Payment created successfully with ID: {} and payment ID: {}",
         savedPayment.getId(), savedPayment.getPaymentId());
@@ -75,7 +75,7 @@ public class PaymentService {
     payment.updateStatus(Payment.PaymentStatus.PROCESSING);
     paymentRepository.save(payment);
 
-    paymentEventService.logEvent(payment, PaymentEventEntity.EventType.PAYMENT_PROCESSING,
+    paymentEventService.logEvent(payment, com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_PROCESSING,
         "Payment processing started", null, null);
 
     try {
@@ -95,17 +95,17 @@ public class PaymentService {
 
       Payment savedPayment = paymentRepository.save(payment);
 
-      PaymentEventEntity.EventType eventType = response.isSuccess() ?
-          PaymentEventEntity.EventType.PAYMENT_COMPLETED :
-          PaymentEventEntity.EventType.PAYMENT_FAILED;
+      com.flagship.payment.model.PaymentEvent.EventType eventType = response.isSuccess() ?
+          com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_COMPLETED :
+          com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_FAILED;
       paymentEventService.logEvent(savedPayment, eventType,
           response.isSuccess() ? "Payment completed successfully"
               : "Payment failed: " + response.getErrorMessage(),
           null, null);
 
-      PaymentEvent.PaymentEventType publishEventType = response.isSuccess() ?
-          PaymentEvent.PaymentEventType.PAYMENT_COMPLETED :
-          PaymentEvent.PaymentEventType.PAYMENT_FAILED;
+      com.flagship.payment.event.PaymentEvent.PaymentEventType publishEventType = response.isSuccess() ?
+          com.flagship.payment.event.PaymentEvent.PaymentEventType.PAYMENT_COMPLETED :
+          com.flagship.payment.event.PaymentEvent.PaymentEventType.PAYMENT_FAILED;
       publishPaymentEvent(savedPayment, publishEventType);
 
       return savedPayment;
@@ -114,10 +114,10 @@ public class PaymentService {
       payment.updateStatus(Payment.PaymentStatus.FAILED, e.getMessage());
       Payment savedPayment = paymentRepository.save(payment);
 
-      paymentEventService.logEvent(savedPayment, PaymentEventEntity.EventType.PAYMENT_FAILED,
+      paymentEventService.logEvent(savedPayment, com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_FAILED,
           "Payment processing failed: " + e.getMessage(), null, null);
 
-      publishPaymentEvent(savedPayment, PaymentEvent.PaymentEventType.PAYMENT_FAILED);
+      publishPaymentEvent(savedPayment, com.flagship.payment.event.PaymentEvent.PaymentEventType.PAYMENT_FAILED);
 
       log.error("Payment processing failed: {}", paymentId, e);
       throw new RuntimeException("Payment processing failed", e);
@@ -179,7 +179,7 @@ public class PaymentService {
     payment.updateRefundStatus(Payment.RefundStatus.PENDING, refundAmount);
     Payment savedPayment = paymentRepository.save(payment);
 
-    paymentEventService.logEvent(savedPayment, PaymentEventEntity.EventType.REFUND_INITIATED,
+    paymentEventService.logEvent(savedPayment, com.flagship.payment.model.PaymentEvent.EventType.REFUND_INITIATED,
         "Refund initiated for amount: " + refundAmount, null, null);
 
     try {
@@ -196,29 +196,29 @@ public class PaymentService {
 
       Payment finalPayment = paymentRepository.save(payment);
 
-      PaymentEventEntity.EventType eventType = response.isSuccess() ?
-          PaymentEventEntity.EventType.REFUND_COMPLETED :
-          PaymentEventEntity.EventType.REFUND_FAILED;
+      com.flagship.payment.model.PaymentEvent.EventType eventType = response.isSuccess() ?
+          com.flagship.payment.model.PaymentEvent.EventType.REFUND_COMPLETED :
+          com.flagship.payment.model.PaymentEvent.EventType.REFUND_FAILED;
       paymentEventService.logEvent(finalPayment, eventType,
           response.isSuccess() ? "Refund completed successfully"
               : "Refund failed: " + response.getErrorMessage(),
           null, null);
 
-      PaymentEvent.PaymentEventType publishEventType = response.isSuccess() ?
-          PaymentEvent.PaymentEventType.REFUND_COMPLETED :
-          PaymentEvent.PaymentEventType.REFUND_FAILED;
+      com.flagship.payment.event.PaymentEvent.PaymentEventType publishEventType = response.isSuccess() ?
+          com.flagship.payment.event.PaymentEvent.PaymentEventType.REFUND_COMPLETED :
+          com.flagship.payment.event.PaymentEvent.PaymentEventType.REFUND_FAILED;
       publishPaymentEvent(finalPayment, publishEventType);
 
       return finalPayment;
 
     } catch (Exception e) {
       payment.updateRefundStatus(Payment.RefundStatus.FAILED, refundAmount);
-      Payment savedPayment = paymentRepository.save(payment);
+      Payment failedPayment = paymentRepository.save(payment);
 
-      paymentEventService.logEvent(savedPayment, PaymentEventEntity.EventType.REFUND_FAILED,
+      paymentEventService.logEvent(failedPayment, com.flagship.payment.model.PaymentEvent.EventType.REFUND_FAILED,
           "Refund processing failed: " + e.getMessage(), null, null);
 
-      publishPaymentEvent(savedPayment, PaymentEvent.PaymentEventType.REFUND_FAILED);
+      publishPaymentEvent(failedPayment, com.flagship.payment.event.PaymentEvent.PaymentEventType.REFUND_FAILED);
 
       log.error("Refund processing failed: {}", paymentId, e);
       throw new RuntimeException("Refund processing failed", e);
@@ -239,10 +239,10 @@ public class PaymentService {
     payment.updateStatus(Payment.PaymentStatus.CANCELLED);
     Payment savedPayment = paymentRepository.save(payment);
 
-    paymentEventService.logEvent(savedPayment, PaymentEventEntity.EventType.PAYMENT_CANCELLED,
+    paymentEventService.logEvent(savedPayment, com.flagship.payment.model.PaymentEvent.EventType.PAYMENT_CANCELLED,
         "Payment cancelled", null, null);
 
-    publishPaymentEvent(savedPayment, PaymentEvent.PaymentEventType.PAYMENT_CANCELLED);
+    publishPaymentEvent(savedPayment, com.flagship.payment.event.PaymentEvent.PaymentEventType.PAYMENT_CANCELLED);
 
     log.info("Payment cancelled successfully: {}", paymentId);
     return savedPayment;
@@ -262,10 +262,10 @@ public class PaymentService {
     return "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
   }
 
-  private void publishPaymentEvent(Payment payment, PaymentEvent.PaymentEventType eventType) {
+  private void publishPaymentEvent(Payment payment, com.flagship.payment.event.PaymentEvent.PaymentEventType eventType) {
     try {
-      PaymentEvent event = PaymentEvent.builder()
-          .paymentId(payment.getId())
+      com.flagship.payment.event.PaymentEvent event = com.flagship.payment.event.PaymentEvent.builder()
+          .id(payment.getId())
           .paymentId(payment.getPaymentId())
           .orderId(payment.getOrderId())
           .userId(payment.getUserId())

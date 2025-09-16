@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PaymentEvent {
 
-  private Long paymentId;
+  private Long id;
   private String paymentId;
   private Long orderId;
   private Long userId;
