@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   pull-requests: write
   checks: write
@@ -104,6 +104,7 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
     
     - name: Extract metadata
       id: meta
