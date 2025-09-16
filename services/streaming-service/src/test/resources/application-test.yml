@@ -1,0 +1,21 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: streaming-service-test
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/flagship
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+
+logging:
+  level:
+    com.flagship.streaming: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.test: DEBUG
