@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flagship
+  labels:
+    name: flagship
+    app: flagship-microservices
