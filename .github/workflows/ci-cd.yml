@@ -6,6 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+  checks: write
+  statuses: write
+  actions: read
+  security-events: write
+  id-token: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -13,6 +23,11 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      actions: read
     strategy:
       matrix:
         service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
@@ -50,6 +65,10 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      actions: read
     strategy:
       matrix:
         service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
@@ -111,6 +130,10 @@ jobs:
   security-scan:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     strategy:
       matrix:
         service: [api-gateway, user-service, order-service, payment-service, inventory-service, streaming-service]
@@ -137,6 +160,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
     environment: staging
+    permissions:
+      contents: read
+      actions: read
     
     steps:
     - uses: actions/checkout@v4
@@ -177,6 +203,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     environment: production
+    permissions:
+      contents: read
+      actions: read
     
     steps:
     - uses: actions/checkout@v4
@@ -247,12 +276,15 @@ jobs:
         sleep 10
         curl -f http://localhost:8086/actuator/health || exit 1
         
-        echo " All 6 services health checks passed"
+        echo "All 6 services health checks passed"
 
   notify:
     needs: [deploy-staging, deploy-production]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      contents: read
+      actions: read
     
     steps:
     - name: Notify deployment status
