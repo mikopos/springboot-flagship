@@ -1,0 +1,29 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: api-gateway-test
+  
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/flagship
+  
+  redis:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    com.flagship.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.test: DEBUG
