@@ -11,6 +11,4 @@ spring:
 
 logging:
   level:
-    com.flagship.streaming: INFO
-    org.springframework.security: WARN
-    org.springframework.kafka: WARN
+    com.flagship: INFO

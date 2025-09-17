@@ -20,6 +20,4 @@ spring:
 
 logging:
   level:
-    com.flagship.payment: INFO
-    org.springframework.security: WARN
-    org.springframework.kafka: WARN
+    com.flagship: INFO

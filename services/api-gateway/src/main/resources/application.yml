@@ -29,15 +29,17 @@ spring:
           issuer-uri: http://localhost:8080/realms/flagship
           jwk-set-uri: http://localhost:8080/realms/flagship/protocol/openid-connect/certs
   
-  redis:
-    host: localhost
-    port: 6379
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
+  # Redis configuration moved to application-docker.yml for Docker environment
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 management:
   endpoints:

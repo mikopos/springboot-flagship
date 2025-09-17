@@ -20,7 +20,4 @@ spring:
 
 logging:
   level:
-    com.flagship.inventory: INFO
-    org.springframework.security: WARN
-    org.springframework.kafka: WARN
-    org.springframework.cache: WARN
+    com.flagship: INFO

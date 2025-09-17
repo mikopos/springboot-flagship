@@ -14,11 +14,10 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
 
-logging:
-  level:
-    com.flagship.user: INFO
-    org.springframework.security: WARN
-    org.springframework.kafka: WARN
 
 keycloak:
   auth-server-url: http://keycloak:8080
+
+logging:
+  level:
+    com.flagship: INFO

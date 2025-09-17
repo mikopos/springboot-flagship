@@ -16,6 +16,4 @@ spring:
 
 logging:
   level:
-    com.flagship.order: INFO
-    org.springframework.security: WARN
-    org.springframework.kafka: WARN
+    com.flagship: INFO
