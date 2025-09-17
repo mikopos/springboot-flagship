@@ -40,7 +40,7 @@ public interface ProductEventRepository extends JpaRepository<ProductEvent, Long
   List<ProductEvent> findByTimestampBetweenOrderByTimestampDesc(LocalDateTime startDate,
       LocalDateTime endDate);
 
-  @Query("SELECT pe FROM ProductEvent pe WHERE pe.product.id = :productId ORDER BY pe.timestamp DESC")
+  @Query(value = "SELECT * FROM product_events pe WHERE pe.product_id = :productId ORDER BY pe.timestamp DESC LIMIT :limit", nativeQuery = true)
   List<ProductEvent> findTopByProductIdOrderByTimestampDesc(@Param("productId") Long productId,
       @Param("limit") int limit);
 

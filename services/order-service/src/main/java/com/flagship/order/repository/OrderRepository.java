@@ -51,7 +51,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   List<Order> findByTrackingNumberIsNullOrderByCreatedAtDesc();
 
-  @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.createdAt DESC")
+  @Query(value = "SELECT * FROM orders o WHERE o.user_id = :userId ORDER BY o.created_at DESC LIMIT :limit", nativeQuery = true)
   List<Order> findTopByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId,
       @Param("limit") int limit);
 

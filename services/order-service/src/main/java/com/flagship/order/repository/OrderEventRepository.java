@@ -38,7 +38,7 @@ public interface OrderEventRepository extends JpaRepository<OrderEvent, Long> {
   List<OrderEvent> findByTimestampBetweenOrderByTimestampDesc(LocalDateTime startDate,
       LocalDateTime endDate);
 
-  @Query("SELECT oe FROM OrderEvent oe WHERE oe.order.id = :orderId ORDER BY oe.timestamp DESC")
+  @Query(value = "SELECT * FROM order_events oe WHERE oe.order_id = :orderId ORDER BY oe.timestamp DESC LIMIT :limit", nativeQuery = true)
   List<OrderEvent> findTopByOrderIdOrderByTimestampDesc(@Param("orderId") Long orderId,
       @Param("limit") int limit);
 

@@ -40,7 +40,7 @@ public interface PaymentEventRepository extends JpaRepository<PaymentEvent, Long
   List<PaymentEvent> findByTimestampBetweenOrderByTimestampDesc(LocalDateTime startDate,
       LocalDateTime endDate);
 
-  @Query("SELECT pe FROM PaymentEvent pe WHERE pe.payment.id = :paymentId ORDER BY pe.timestamp DESC")
+  @Query(value = "SELECT * FROM payment_events pe WHERE pe.payment_id = :paymentId ORDER BY pe.timestamp DESC LIMIT :limit", nativeQuery = true)
   List<PaymentEvent> findTopByPaymentIdOrderByTimestampDesc(@Param("paymentId") Long paymentId,
       @Param("limit") int limit);
 

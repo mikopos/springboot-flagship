@@ -58,7 +58,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
   List<Payment> findByExpiresAtBeforeAndStatusOrderByCreatedAtDesc(LocalDateTime currentTime,
       Payment.PaymentStatus status);
 
-  @Query("SELECT p FROM Payment p WHERE p.userId = :userId ORDER BY p.createdAt DESC")
+  @Query(value = "SELECT * FROM payments p WHERE p.user_id = :userId ORDER BY p.created_at DESC LIMIT :limit", nativeQuery = true)
   List<Payment> findTopByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId,
       @Param("limit") int limit);
 

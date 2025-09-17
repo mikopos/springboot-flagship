@@ -36,7 +36,7 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
   List<UserActivity> findByTimestampBetweenOrderByTimestampDesc(LocalDateTime startDate,
       LocalDateTime endDate);
 
-  @Query("SELECT ua FROM UserActivity ua WHERE ua.user.id = :userId ORDER BY ua.timestamp DESC")
+  @Query(value = "SELECT * FROM user_activity ua WHERE ua.user_id = :userId ORDER BY ua.timestamp DESC LIMIT :limit", nativeQuery = true)
   List<UserActivity> findTopByUserIdOrderByTimestampDesc(@Param("userId") Long userId,
       @Param("limit") int limit);
 
