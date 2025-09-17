@@ -57,7 +57,7 @@ public class PaymentController {
     }
   }
 
-  @PostMapping("/{paymentId}/process")
+  @PostMapping("/{paymentId}/idempotentprocess")
   @PreAuthorize("hasRole('ADMIN') or hasRole('PAYMENT_MANAGER') or @paymentService.isPaymentOwner(#paymentId, authentication)")
   public ResponseEntity<Payment> processPaymentWithIdempotency(@PathVariable String paymentId,
       @RequestParam String idempotencyKey) {
