@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -7,14 +7,13 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: write
+  contents: read
   packages: write
   pull-requests: write
   checks: write
   statuses: write
   actions: read
   security-events: write
-  id-token: write
 
 env:
   REGISTRY: ghcr.io
@@ -189,142 +188,3 @@ jobs:
         sarif_file: 'trivy-results.sarif'
       continue-on-error: true
 
-  deploy-staging:
-    needs: [build, security-scan]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
-    permissions:
-      contents: read
-      actions: read
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
-    
-    - name: Configure kubectl
-      run: |
-        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
-    
-    - name: Deploy to staging
-      run: |
-        kubectl apply -f k8s/namespace.yaml
-        kubectl apply -f k8s/postgres-secret.yaml
-        kubectl apply -f k8s/prometheus-scrape-config.yaml
-        kubectl apply -f k8s/api-gateway-deployment.yaml
-        kubectl apply -f k8s/user-service-deployment.yaml
-        kubectl apply -f k8s/order-service-deployment.yaml
-        kubectl apply -f k8s/payment-service-deployment.yaml
-        kubectl apply -f k8s/inventory-service-deployment.yaml
-        kubectl apply -f k8s/streaming-service-deployment.yaml
-    
-    - name: Wait for deployment
-      run: |
-        kubectl rollout status deployment/api-gateway -n flagship --timeout=300s
-        kubectl rollout status deployment/user-service -n flagship --timeout=300s
-        kubectl rollout status deployment/order-service -n flagship --timeout=300s
-        kubectl rollout status deployment/payment-service -n flagship --timeout=300s
-        kubectl rollout status deployment/inventory-service -n flagship --timeout=300s
-        kubectl rollout status deployment/streaming-service -n flagship --timeout=300s
-
-  deploy-production:
-    needs: [build, security-scan]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    permissions:
-      contents: read
-      actions: read
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.28.0'
-    
-    - name: Configure kubectl
-      run: |
-        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
-    
-    - name: Deploy to production
-      run: |
-        kubectl apply -f k8s/namespace.yaml
-        kubectl apply -f k8s/postgres-secret.yaml
-        kubectl apply -f k8s/prometheus-scrape-config.yaml
-        kubectl apply -f k8s/api-gateway-deployment.yaml
-        kubectl apply -f k8s/user-service-deployment.yaml
-        kubectl apply -f k8s/order-service-deployment.yaml
-        kubectl apply -f k8s/payment-service-deployment.yaml
-        kubectl apply -f k8s/inventory-service-deployment.yaml
-        kubectl apply -f k8s/streaming-service-deployment.yaml
-    
-    - name: Wait for deployment
-      run: |
-        kubectl rollout status deployment/api-gateway -n flagship --timeout=300s
-        kubectl rollout status deployment/user-service -n flagship --timeout=300s
-        kubectl rollout status deployment/order-service -n flagship --timeout=300s
-        kubectl rollout status deployment/payment-service -n flagship --timeout=300s
-        kubectl rollout status deployment/inventory-service -n flagship --timeout=300s
-        kubectl rollout status deployment/streaming-service -n flagship --timeout=300s
-    
-    - name: Run smoke tests
-      run: |
-        # Wait for services to be ready
-        sleep 30
-        
-        # Test API Gateway health
-        kubectl port-forward service/api-gateway 8081:8081 -n flagship &
-        sleep 10
-        curl -f http://localhost:8081/actuator/health || exit 1
-        
-        # Test User Service health
-        kubectl port-forward service/user-service 8082:8082 -n flagship &
-        sleep 10
-        curl -f http://localhost:8082/actuator/health || exit 1
-        
-        # Test Order Service health
-        kubectl port-forward service/order-service 8083:8083 -n flagship &
-        sleep 10
-        curl -f http://localhost:8083/actuator/health || exit 1
-        
-        # Test Payment Service health
-        kubectl port-forward service/payment-service 8084:8084 -n flagship &
-        sleep 10
-        curl -f http://localhost:8084/actuator/health || exit 1
-        
-        # Test Inventory Service health
-        kubectl port-forward service/inventory-service 8085:8085 -n flagship &
-        sleep 10
-        curl -f http://localhost:8085/actuator/health || exit 1
-        
-        # Test Streaming Service health
-        kubectl port-forward service/streaming-service 8086:8086 -n flagship &
-        sleep 10
-        curl -f http://localhost:8086/actuator/health || exit 1
-        
-        echo "All 6 services health checks passed"
-
-  notify:
-    needs: [deploy-staging, deploy-production]
-    runs-on: ubuntu-latest
-    if: always()
-    permissions:
-      contents: read
-      actions: read
-    
-    steps:
-    - name: Notify deployment status
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      if: always()
