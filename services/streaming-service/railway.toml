@@ -1,6 +1,6 @@
 [build]
 builder = "railpack"
-buildCommand = "cd ../.. && mvn clean package -DskipTests -Prailway -pl services/streaming-service -am"
+buildCommand = "mvn clean package -DskipTests -Prailway -pl services/streaming-service -am"
 
 [deploy]
 startCommand = "java -jar target/streaming-service-1.0.0.jar"
