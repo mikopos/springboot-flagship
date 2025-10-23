@@ -1,10 +1,13 @@
 {
   "build": {
-    "builder": "NIXPACKS",
+    "builder": "RAILPACK",
     "buildCommand": "mvn clean package -DskipTests -Prailway"
   },
   "deploy": {
     "startCommand": "java -jar target/*.jar",
     "healthcheckPath": "/actuator/health"
+  },
+  "env": {
+    "RAILPACK_JAVA_VERSION": "21"
   }
 }
