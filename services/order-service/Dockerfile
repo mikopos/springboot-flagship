@@ -1,44 +1,50 @@
-# Multi-stage build for optimized Docker image
-FROM maven:latest AS build
+# Multi-stage build for optimized image size
+FROM openjdk:21-jdk-slim as builder
 
+# Set working directory
 WORKDIR /app
 
-# Copy parent POM and all service POMs to satisfy Maven multi-module requirements
-COPY pom.xml .
-COPY services/api-gateway/pom.xml services/api-gateway/
-COPY services/user-service/pom.xml services/user-service/
-COPY services/order-service/pom.xml services/order-service/
-COPY services/payment-service/pom.xml services/payment-service/
-COPY services/inventory-service/pom.xml services/inventory-service/
-COPY services/streaming-service/pom.xml services/streaming-service/
+# Copy Maven files
+COPY ../../pom.xml .
+COPY ../../.mvn ../../.mvn
+COPY ../../mvnw .
 
-# Create placeholder directories for all services to satisfy Maven
-RUN mkdir -p services/api-gateway/src/main/java services/api-gateway/src/main/resources services/api-gateway/src/test/java services/api-gateway/src/test/resources
-RUN mkdir -p services/user-service/src/main/java services/user-service/src/main/resources services/user-service/src/test/java services/user-service/src/test/resources
-RUN mkdir -p services/payment-service/src/main/java services/payment-service/src/main/resources services/payment-service/src/test/java services/payment-service/src/test/resources
-RUN mkdir -p services/inventory-service/src/main/java services/inventory-service/src/main/resources services/inventory-service/src/test/java services/inventory-service/src/test/resources
-RUN mkdir -p services/streaming-service/src/main/java services/streaming-service/src/main/resources services/streaming-service/src/test/java services/streaming-service/src/test/resources
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
 
-# Copy the actual source code for the Order Service
-COPY services/order-service/src services/order-service/src
+# Copy source code
+COPY . .
 
-# Build only the Order Service
-RUN mvn clean package spring-boot:repackage -DskipTests -pl services/order-service
+# Build the application
+RUN ./mvnw clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-alpine
-RUN apk add --no-cache curl
-RUN addgroup -g 1000 flagship && adduser -D -s /bin/sh -u 1000 -G flagship flagship
+# Runtime stage
+FROM openjdk:21-jre-slim
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set working directory
 WORKDIR /app
 
-COPY --from=build /app/services/order-service/target/order-service-*.jar app.jar
-RUN chown flagship:flagship app.jar
+# Copy the JAR from builder stage
+COPY --from=builder /app/target/order-service-1.0.0.jar app.jar
 
-USER flagship
+# Change ownership to non-root user
+RUN chown appuser:appuser app.jar
 
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 8083
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8083/actuator/health || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8083/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]
