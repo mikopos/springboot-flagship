@@ -1,9 +1,9 @@
 [build]
 builder = "railpack"
-buildCommand = "mvn clean package -DskipTests -Prailway -pl services/order-service -am"
+buildCommand = "cd ../.. && mvn clean package -DskipTests -Prailway -pl services/order-service -am"
 
 [deploy]
-startCommand = "java -jar services/order-service/target/order-service-1.0.0.jar"
+startCommand = "java -jar target/order-service-1.0.0.jar"
 healthcheckPath = "/actuator/health"
 
 [env]

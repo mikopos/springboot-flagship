@@ -1,9 +1,9 @@
 [build]
 builder = "railpack"
-buildCommand = "mvn clean package -DskipTests -Prailway -pl services/streaming-service -am"
+buildCommand = "cd ../.. && mvn clean package -DskipTests -Prailway -pl services/streaming-service -am"
 
 [deploy]
-startCommand = "java -jar services/streaming-service/target/streaming-service-1.0.0.jar"
+startCommand = "java -jar target/streaming-service-1.0.0.jar"
 healthcheckPath = "/actuator/health"
 
 [env]
