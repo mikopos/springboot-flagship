@@ -1,73 +1,15 @@
 {
   "build": {
     "builder": "railpack",
-    "buildCommand": "mvn clean package -DskipTests -Prailway"
+    "buildCommand": "mvn clean package -DskipTests -Prailway && mkdir -p target && echo 'All services built successfully' > target/build-complete.txt"
+  },
+  "deploy": {
+    "startCommand": "echo 'Multi-module project built successfully. All JAR files:' && find services -name '*.jar' -type f -exec echo 'JAR: {}' \\; && echo 'To deploy individual services, create separate Railway services with root directories:' && echo '  - services/api-gateway (Port: 8081)' && echo '  - services/user-service (Port: 8082)' && echo '  - services/order-service (Port: 8083)' && echo '  - services/payment-service (Port: 8084)' && echo '  - services/inventory-service (Port: 8085)' && echo '  - services/streaming-service (Port: 8086)'",
+    "healthcheckPath": "/actuator/health"
   },
   "env": {
     "RAILPACK_JAVA_VERSION": "21",
     "JAVA_VERSION": "21",
     "SPRING_PROFILES_ACTIVE": "docker"
-  },
-  "services": [
-    {
-      "name": "api-gateway",
-      "source": "services/api-gateway",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/api-gateway -am",
-      "startCommand": "java -jar target/api-gateway-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8081"
-      }
-    },
-    {
-      "name": "user-service",
-      "source": "services/user-service",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/user-service -am",
-      "startCommand": "java -jar target/user-service-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8082"
-      }
-    },
-    {
-      "name": "order-service",
-      "source": "services/order-service",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/order-service -am",
-      "startCommand": "java -jar target/order-service-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8083"
-      }
-    },
-    {
-      "name": "payment-service",
-      "source": "services/payment-service",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/payment-service -am",
-      "startCommand": "java -jar target/payment-service-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8084"
-      }
-    },
-    {
-      "name": "inventory-service",
-      "source": "services/inventory-service",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/inventory-service -am",
-      "startCommand": "java -jar target/inventory-service-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8085"
-      }
-    },
-    {
-      "name": "streaming-service",
-      "source": "services/streaming-service",
-      "buildCommand": "mvn clean package -DskipTests -Prailway -pl services/streaming-service -am",
-      "startCommand": "java -jar target/streaming-service-1.0.0.jar",
-      "healthcheckPath": "/actuator/health",
-      "env": {
-        "SERVER_PORT": "8086"
-      }
-    }
-  ]
+  }
 }
