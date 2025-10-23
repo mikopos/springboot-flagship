@@ -6,5 +6,6 @@ buildCommand = "mvn clean package -DskipTests -Prailway"
 startCommand = "java -jar target/*.jar"
 healthcheckPath = "/actuator/health"
 
-[deploy.envs]
+[env]
 RAILPACK_JAVA_VERSION = "21"
+JAVA_VERSION = "21"
