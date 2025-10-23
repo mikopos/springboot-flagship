@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["jdk21", "maven"]
+
+[phases.build]
+cmds = [
+  "echo 'Java version:' && java -version",
+  "echo 'Maven version:' && mvn -version", 
+  "echo 'JAVA_HOME:' && echo $JAVA_HOME",
+  "mvn clean package -DskipTests -Prailway"
+]
+
+[phases.start]
+cmd = "java -jar target/*.jar"
+
+[variables]
+JAVA_HOME = "/nix/store/*-openjdk-21*/"
+PATH = "/nix/store/*-openjdk-21*/bin:$PATH"
