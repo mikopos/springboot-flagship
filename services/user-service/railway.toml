@@ -1,0 +1,13 @@
+[build]
+builder = "railpack"
+buildCommand = "mvn clean package -DskipTests -Prailway -pl services/user-service -am"
+
+[deploy]
+startCommand = "java -jar services/user-service/target/user-service-1.0.0.jar"
+healthcheckPath = "/actuator/health"
+
+[env]
+RAILPACK_JAVA_VERSION = "21"
+JAVA_VERSION = "21"
+SPRING_PROFILES_ACTIVE = "docker"
+SERVER_PORT = "8082"

@@ -1,0 +1,59 @@
+name: Deploy All Microservices to Railway
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy-services:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service:
+          - name: api-gateway
+            port: 8081
+          - name: user-service
+            port: 8082
+          - name: order-service
+            port: 8083
+          - name: payment-service
+            port: 8084
+          - name: inventory-service
+            port: 8085
+          - name: streaming-service
+            port: 8086
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Build specific service
+      run: mvn clean package -DskipTests -Prailway -pl services/${{ matrix.service.name }} -am
+      
+    - name: Deploy ${{ matrix.service.name }} to Railway
+      uses: railwayapp/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ${{ matrix.service.name }}
+        build-command: "mvn clean package -DskipTests -Prailway -pl services/${{ matrix.service.name }} -am"
+        start-command: "java -jar services/${{ matrix.service.name }}/target/${{ matrix.service.name }}-1.0.0.jar"
+        environment-variables: |
+          RAILPACK_JAVA_VERSION=21
+          JAVA_VERSION=21
+          SPRING_PROFILES_ACTIVE=docker
+          SERVER_PORT=${{ matrix.service.port }}
