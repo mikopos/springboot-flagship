@@ -172,6 +172,8 @@
           <suppressionFiles>
             <suppressionFile>owasp-suppressions.xml</suppressionFile>
           </suppressionFiles>
+          <!-- Skip dependency check in Railway deployment -->
+          <skip>${skip.dependency.check}</skip>
         </configuration>
       </plugin>
 
@@ -182,4 +184,22 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>railway</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <version>8.4.0</version>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
