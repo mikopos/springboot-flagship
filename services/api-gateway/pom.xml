@@ -5,69 +5,18 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.flagship</groupId>
+  <parent>
+    <groupId>com.flagship</groupId>
+    <artifactId>springboot-flagship</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
   <artifactId>api-gateway</artifactId>
-  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>API Gateway</name>
   <description>Spring Cloud Gateway for routing, authentication, and rate limiting</description>
 
-  <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot.version>3.2.0</spring-boot.version>
-    <spring-cloud.version>2023.0.0</spring-cloud.version>
-    <resilience4j.version>2.1.0</resilience4j.version>
-    <micrometer.version>1.12.0</micrometer.version>
-    <testcontainers.version>1.19.3</testcontainers.version>
-    <junit.version>5.10.1</junit.version>
-    <mockito.version>5.7.0</mockito.version>
-  </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <!-- Spring Boot BOM -->
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      
-      <!-- Spring Cloud BOM -->
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      
-      <dependency>
-        <groupId>org.yaml</groupId>
-        <artifactId>snakeyaml</artifactId>
-        <version>2.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>2.15.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>2.15.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>2.15.2</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -181,7 +130,6 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring-boot.version}</version>
         <executions>
           <execution>
             <goals>
