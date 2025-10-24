@@ -5,9 +5,16 @@ buildCommand = "mvn clean package -DskipTests"
 [deploy]
 startCommand = "java -jar target/payment-service-1.0.0.jar"
 healthcheckPath = "/actuator/health"
+port = 8084
+healthcheckTimeout = "30s"
+healthcheckInterval = "10s"
 
 [env]
 RAILPACK_JAVA_VERSION = "21"
 JAVA_VERSION = "21"
 SPRING_PROFILES_ACTIVE = "docker"
 SERVER_PORT = "8084"
+MANAGEMENT_SERVER_PORT = "8084"
+MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE = "health,info,metrics,prometheus"
+MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS = "always"
+MANAGEMENT_ENDPOINTS_WEB_BASE_PATH = "/actuator"

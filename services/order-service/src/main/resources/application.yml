@@ -6,9 +6,9 @@ spring:
     name: order-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/flagship_db
-    username: flagship_user
-    password: flagship_password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/flagship_db}
+    username: ${DB_USERNAME:flagship_user}
+    password: ${DB_PASSWORD:flagship_password}
     driver-class-name: org.postgresql.Driver
   
   jpa:
