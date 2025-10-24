@@ -6,6 +6,8 @@ buildCommand = "mvn clean package -DskipTests"
 startCommand = "java -jar target/api-gateway-1.0.0.jar"
 healthcheckPath = "/actuator/health"
 port = 8081
+healthcheckTimeout = "30s"
+healthcheckInterval = "10s"
 
 [env]
 RAILPACK_JAVA_VERSION = "21"
@@ -15,3 +17,4 @@ SERVER_PORT = "8081"
 MANAGEMENT_SERVER_PORT = "8081"
 MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE = "health,info,metrics,prometheus,gateway"
 MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS = "always"
+MANAGEMENT_ENDPOINTS_WEB_BASE_PATH = "/actuator"
