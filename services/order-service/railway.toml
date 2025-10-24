@@ -1,6 +1,6 @@
 [build]
 builder = "railpack"
-buildCommand = "cd ../.. && mvn clean package -DskipTests -Prailway -pl services/order-service -am"
+buildCommand = "mvn clean package -DskipTests"
 
 [deploy]
 startCommand = "java -jar target/order-service-1.0.0.jar"

@@ -1,6 +1,6 @@
 [build]
 builder = "railpack"
-buildCommand = "cd ../.. && mvn clean package -DskipTests -Prailway -pl services/inventory-service -am"
+buildCommand = "mvn clean package -DskipTests"
 
 [deploy]
 startCommand = "java -jar target/inventory-service-1.0.0.jar"
