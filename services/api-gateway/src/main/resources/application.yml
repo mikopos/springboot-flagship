@@ -1,9 +1,10 @@
 server:
-  port: 8081
+  port: ${PORT:8081}
+  address: 0.0.0.0
 
 spring:
   application:
-    name: api-gateway
+    name: ${APP_NAME:unknown}
   
   cloud:
     gateway:
@@ -32,8 +33,9 @@ spring:
   # Redis configuration moved to application-docker.yml for Docker environment
   data:
     redis:
-      host: redis
-      port: 6379
+      host: ${REDIS_HOST:}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -48,11 +50,13 @@ management:
         include: health,info,metrics,prometheus,gateway
   endpoint:
     health:
-      show-details: always
-  metrics:
-    export:
-      prometheus:
+      probes:
         enabled: true
+      show-details: always
+  health:
+    redis:
+      enabled: true
+  metrics:
     distribution:
       percentiles-histogram:
         http.server.requests: true
@@ -60,6 +64,10 @@ management:
         http.server.requests: 0.5, 0.95, 0.99
       slo:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
