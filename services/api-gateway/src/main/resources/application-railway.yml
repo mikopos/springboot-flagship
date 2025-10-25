@@ -1,0 +1,33 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  
+  data:
+    redis:
+      # Disable Redis completely for Railway
+      host: ""
+      port: 6379
+      timeout: 2000ms
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Use placeholder values for Railway - these should be set via environment variables
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/flagship}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/flagship/protocol/openid-connect/certs}
+
+# Disable Redis health check for Railway
+management:
+  health:
+    redis:
+      enabled: false
+
+logging:
+  level:
+    com.flagship.gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: WARN

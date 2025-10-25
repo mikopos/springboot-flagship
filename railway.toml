@@ -3,6 +3,7 @@ builder = "dockerfile"
 
 [env]
 JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+SPRING_PROFILES_ACTIVE = "railway"
 
 # ---------------- API Gateway ----------------
 [[services]]
