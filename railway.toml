@@ -7,6 +7,6 @@ JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
 # ---------------- API Gateway ----------------
 [[services]]
 name = "api-gateway"
-root = "/services/api-gateway"
+root = "/"
 dockerfilePath = "/services/api-gateway/Dockerfile"
 healthcheckPath = "/actuator/health"
