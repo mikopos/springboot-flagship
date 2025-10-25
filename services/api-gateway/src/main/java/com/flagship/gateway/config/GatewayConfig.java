@@ -34,12 +34,11 @@ public class GatewayConfig {
                    .setName("user-service-cb")
                    .setFallbackUri("forward:/fallback/user-service"));
               
-              // Rate limiting disabled for Railway deployment
-              // if (isRedisEnabled()) {
-              //   f.requestRateLimiter(config -> config
-              //       .setRateLimiter(redisRateLimiter())
-              //       .setKeyResolver(userKeyResolver()));
-              // }
+               if (isRedisEnabled()) {
+                 f.requestRateLimiter(config -> config
+                     .setRateLimiter(redisRateLimiter())
+                     .setKeyResolver(userKeyResolver()));
+               }
               
               return f;
             })
@@ -53,12 +52,11 @@ public class GatewayConfig {
                    .setName("order-service-cb")
                    .setFallbackUri("forward:/fallback/order-service"));
               
-              // Rate limiting disabled for Railway deployment
-              // if (isRedisEnabled()) {
-              //   f.requestRateLimiter(config -> config
-              //       .setRateLimiter(redisRateLimiter())
-              //       .setKeyResolver(userKeyResolver()));
-              // }
+               if (isRedisEnabled()) {
+                 f.requestRateLimiter(config -> config
+                     .setRateLimiter(redisRateLimiter())
+                     .setKeyResolver(userKeyResolver()));
+               }
               
               return f;
             })
@@ -72,12 +70,11 @@ public class GatewayConfig {
                    .setName("payment-service-cb")
                    .setFallbackUri("forward:/fallback/payment-service"));
               
-              // Rate limiting disabled for Railway deployment
-              // if (isRedisEnabled()) {
-              //   f.requestRateLimiter(config -> config
-              //       .setRateLimiter(redisRateLimiter())
-              //       .setKeyResolver(userKeyResolver()));
-              // }
+               if (isRedisEnabled()) {
+                 f.requestRateLimiter(config -> config
+                     .setRateLimiter(redisRateLimiter())
+                     .setKeyResolver(userKeyResolver()));
+               }
               
               return f;
             })
@@ -91,12 +88,11 @@ public class GatewayConfig {
                    .setName("inventory-service-cb")
                    .setFallbackUri("forward:/fallback/inventory-service"));
               
-              // Rate limiting disabled for Railway deployment
-              // if (isRedisEnabled()) {
-              //   f.requestRateLimiter(config -> config
-              //       .setRateLimiter(redisRateLimiter())
-              //       .setKeyResolver(userKeyResolver()));
-              // }
+               if (isRedisEnabled()) {
+                 f.requestRateLimiter(config -> config
+                     .setRateLimiter(redisRateLimiter())
+                     .setKeyResolver(userKeyResolver()));
+               }
               
               return f;
             })

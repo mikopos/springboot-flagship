@@ -17,11 +17,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * @author Marios Gavriil
  * @version 1.0.0
  */
-@SpringBootApplication(exclude = {
-    RedisAutoConfiguration.class,
-    RedisReactiveAutoConfiguration.class,
-    RedisRepositoriesAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableDiscoveryClient
 public class ApiGatewayApplication {
 

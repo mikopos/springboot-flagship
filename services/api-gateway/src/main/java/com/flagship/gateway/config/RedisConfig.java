@@ -14,7 +14,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Configures Redis connection for rate limiting and caching
  */
 @Configuration
-@ConditionalOnExpression("!'${spring.data.redis.host:}'.isEmpty()")
 public class RedisConfig {
 
   @Bean
