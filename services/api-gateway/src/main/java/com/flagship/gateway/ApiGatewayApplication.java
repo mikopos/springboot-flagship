@@ -2,6 +2,9 @@ package com.flagship.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
@@ -14,7 +17,11 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * @author Marios Gavriil
  * @version 1.0.0
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    RedisAutoConfiguration.class,
+    RedisReactiveAutoConfiguration.class,
+    RedisRepositoriesAutoConfiguration.class
+})
 @EnableDiscoveryClient
 public class ApiGatewayApplication {
 
