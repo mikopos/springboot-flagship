@@ -1,7 +1,5 @@
 package com.flagship.gateway.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -20,82 +18,55 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class GatewayConfig {
 
-  @Value("${spring.data.redis.host:}")
-  private String redisHost;
-
   @Bean
   public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
     return builder.routes()
         .route("user-service", r -> r
             .path("/api/users/**")
-            .filters(f -> {
-              f.addRequestHeader("X-Service", "user-service")
-               .circuitBreaker(config -> config
-                   .setName("user-service-cb")
-                   .setFallbackUri("forward:/fallback/user-service"));
-              
-               if (isRedisEnabled()) {
-                 f.requestRateLimiter(config -> config
-                     .setRateLimiter(redisRateLimiter())
-                     .setKeyResolver(userKeyResolver()));
-               }
-              
-              return f;
-            })
+            .filters(f -> f
+                .addRequestHeader("X-Service", "user-service")
+                .circuitBreaker(config -> config
+                    .setName("user-service-cb")
+                    .setFallbackUri("forward:/fallback/user-service"))
+                .requestRateLimiter(config -> config
+                    .setRateLimiter(redisRateLimiter())
+                    .setKeyResolver(userKeyResolver())))
             .uri("lb://user-service"))
 
         .route("order-service", r -> r
             .path("/api/orders/**")
-            .filters(f -> {
-              f.addRequestHeader("X-Service", "order-service")
-               .circuitBreaker(config -> config
-                   .setName("order-service-cb")
-                   .setFallbackUri("forward:/fallback/order-service"));
-              
-               if (isRedisEnabled()) {
-                 f.requestRateLimiter(config -> config
-                     .setRateLimiter(redisRateLimiter())
-                     .setKeyResolver(userKeyResolver()));
-               }
-              
-              return f;
-            })
+            .filters(f -> f
+                .addRequestHeader("X-Service", "order-service")
+                .circuitBreaker(config -> config
+                    .setName("order-service-cb")
+                    .setFallbackUri("forward:/fallback/order-service"))
+                .requestRateLimiter(config -> config
+                    .setRateLimiter(redisRateLimiter())
+                    .setKeyResolver(userKeyResolver())))
             .uri("lb://order-service"))
 
         .route("payment-service", r -> r
             .path("/api/payments/**")
-            .filters(f -> {
-              f.addRequestHeader("X-Service", "payment-service")
-               .circuitBreaker(config -> config
-                   .setName("payment-service-cb")
-                   .setFallbackUri("forward:/fallback/payment-service"));
-              
-               if (isRedisEnabled()) {
-                 f.requestRateLimiter(config -> config
-                     .setRateLimiter(redisRateLimiter())
-                     .setKeyResolver(userKeyResolver()));
-               }
-              
-              return f;
-            })
+            .filters(f -> f
+                .addRequestHeader("X-Service", "payment-service")
+                .circuitBreaker(config -> config
+                    .setName("payment-service-cb")
+                    .setFallbackUri("forward:/fallback/payment-service"))
+                .requestRateLimiter(config -> config
+                    .setRateLimiter(redisRateLimiter())
+                    .setKeyResolver(userKeyResolver())))
             .uri("lb://payment-service"))
 
         .route("inventory-service", r -> r
             .path("/api/inventory/**")
-            .filters(f -> {
-              f.addRequestHeader("X-Service", "inventory-service")
-               .circuitBreaker(config -> config
-                   .setName("inventory-service-cb")
-                   .setFallbackUri("forward:/fallback/inventory-service"));
-              
-               if (isRedisEnabled()) {
-                 f.requestRateLimiter(config -> config
-                     .setRateLimiter(redisRateLimiter())
-                     .setKeyResolver(userKeyResolver()));
-               }
-              
-              return f;
-            })
+            .filters(f -> f
+                .addRequestHeader("X-Service", "inventory-service")
+                .circuitBreaker(config -> config
+                    .setName("inventory-service-cb")
+                    .setFallbackUri("forward:/fallback/inventory-service"))
+                .requestRateLimiter(config -> config
+                    .setRateLimiter(redisRateLimiter())
+                    .setKeyResolver(userKeyResolver())))
             .uri("lb://inventory-service"))
 
         .route("streaming-service", r -> r
@@ -104,7 +75,10 @@ public class GatewayConfig {
                 .addRequestHeader("X-Service", "streaming-service")
                 .circuitBreaker(config -> config
                     .setName("streaming-service-cb")
-                    .setFallbackUri("forward:/fallback/streaming-service")))
+                    .setFallbackUri("forward:/fallback/streaming-service"))
+                .requestRateLimiter(config -> config
+                    .setRateLimiter(redisRateLimiter())
+                    .setKeyResolver(userKeyResolver())))
             .uri("lb://streaming-service"))
 
         // Health Check Routes (No Authentication Required)
@@ -116,7 +90,6 @@ public class GatewayConfig {
   }
 
   @Bean
-  @ConditionalOnExpression("!'${spring.data.redis.host:}'.isEmpty()")
   public RedisRateLimiter redisRateLimiter() {
     return new RedisRateLimiter(
         10,
@@ -125,7 +98,6 @@ public class GatewayConfig {
   }
 
   @Bean
-  @ConditionalOnExpression("!'${spring.data.redis.host:}'.isEmpty()")
   public KeyResolver userKeyResolver() {
     return exchange -> {
       String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
@@ -136,9 +108,5 @@ public class GatewayConfig {
       }
       return Mono.just("anonymous");
     };
-  }
-
-  private boolean isRedisEnabled() {
-    return redisHost != null && !redisHost.trim().isEmpty();
   }
 }

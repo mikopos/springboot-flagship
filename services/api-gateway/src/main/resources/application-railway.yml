@@ -30,10 +30,10 @@ spring:
           issuer-uri: http://localhost:8080/realms/flagship
           jwk-set-uri: http://localhost:8080/realms/flagship/protocol/openid-connect/certs
 
-  # Redis configuration moved to application-docker.yml for Docker environment
+  # Redis configuration for Railway
   data:
     redis:
-      host: ${REDIS_HOST:}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 2000ms
