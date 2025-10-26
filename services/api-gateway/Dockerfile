@@ -2,9 +2,12 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy only files needed for a fast, cacheable build
-COPY pom.xml ./
-COPY services ./services
+# Copy parent pom and this service's pom
+COPY ../../pom.xml ./
+COPY pom.xml ./services/api-gateway/
+
+# Copy source code
+COPY src ./services/api-gateway/src
 
 # Build just this module (+ parent & deps)
 # -q for quieter logs, -DskipTests for faster CI
