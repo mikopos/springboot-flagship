@@ -15,7 +15,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the runnable jar built above
-COPY --from=build /app/services/inventory-service/target/inventory-service-1.0.0.jar app.jar
+COPY --from=build /app/services/inventory-service/target/*jar app.jar
 
 # Railway provides PORT; bind to it
 ENV PORT=8085
