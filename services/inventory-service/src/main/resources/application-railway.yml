@@ -89,6 +89,16 @@ management:
       slo:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+
 logging:
   level:
     com.flagship.inventory: DEBUG
