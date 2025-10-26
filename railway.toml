@@ -11,3 +11,10 @@ name = "api-gateway"
 root = "/"
 dockerfilePath = "services/api-gateway/Dockerfile"
 healthcheckPath = "/actuator/health"
+
+# ---------------- Inventory Service ----------------
+[[services]]
+name = "inventory-service"
+root = "/"
+dockerfilePath = "services/inventory-service/Dockerfile"
+healthcheckPath = "/actuator/health"
