@@ -2,12 +2,9 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy parent pom and this service's pom
-COPY ../../pom.xml ./
-COPY pom.xml ./services/inventory-service/
-
-# Copy source code
-COPY src ./services/inventory-service/src
+# Copy only files needed for a fast, cacheable build
+COPY pom.xml ./
+COPY services ./services
 
 # Build just this module (+ parent & deps)
 # -q for quieter logs, -DskipTests for faster CI
