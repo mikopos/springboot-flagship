@@ -7,7 +7,7 @@ spring:
     name: ${APP_NAME:unknown}
   
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/flagship_db}
+    url: jdbc:${POSTGRES_URL}
     username: ${POSTGRES_USERNAME:flagship_user}
     password: ${POSTGRES_PASSWORD:flagship_password}
     driver-class-name: org.postgresql.Driver
