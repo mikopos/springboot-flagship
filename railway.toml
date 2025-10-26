@@ -9,12 +9,12 @@ SPRING_PROFILES_ACTIVE = "railway"
 [[services]]
 name = "api-gateway"
 root = "/"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "services/api-gateway/Dockerfile"
 healthcheckPath = "/actuator/health"
 
 # ---------------- Inventory Service ----------------
 [[services]]
 name = "inventory-service"
 root = "/"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "services/inventory-service/Dockerfile"
 healthcheckPath = "/actuator/health"
