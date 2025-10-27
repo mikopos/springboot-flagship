@@ -8,18 +8,18 @@ COPY services ./services
 
 # Build just this module (+ parent & deps)
 # -q for quieter logs, -DskipTests for faster CI
-RUN mvn -q -DskipTests -Prailway -pl services/api-gateway -am package
+RUN mvn -q -DskipTests -Prailway -pl services/order-service -am package
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the runnable jar built above
-COPY --from=build /app/services/api-gateway/target/*jar app.jar
+COPY --from=build /app/services/order-service/target/*jar app.jar
 
 # Railway provides PORT; bind to it
-ENV PORT=8081
-EXPOSE 8081
+ENV PORT=8083
+EXPOSE 8083
 
 # Keep memory flags tweakable from Railway env
 ENV JAVA_TOOL_OPTIONS=""
