@@ -21,8 +21,8 @@ COPY --from=build /app/services/inventory-service/target/*jar app.jar
 ENV PORT=8085
 EXPOSE 8085
 
-# Keep memory flags tweakable from Railway env
-ENV JAVA_TOOL_OPTIONS=""
+# Optimized JVM settings for Railway memory constraints
+ENV JAVA_TOOL_OPTIONS="-Xmx256m -Xms128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -Djava.security.egd=file:/dev/./urandom"
 
 # Start the app on the assigned port
 CMD ["sh","-c","java $JAVA_TOOL_OPTIONS -Dserver.port=${PORT} -jar /app/app.jar"]

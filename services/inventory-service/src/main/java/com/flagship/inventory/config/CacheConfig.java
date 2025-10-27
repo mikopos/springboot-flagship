@@ -26,7 +26,7 @@ public class CacheConfig {
   @Bean
   public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
     RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-        .entryTtl(Duration.ofMinutes(30))
+        .entryTtl(Duration.ofMinutes(15))
         .serializeKeysWith(
             RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
         .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
@@ -36,13 +36,13 @@ public class CacheConfig {
     return RedisCacheManager.builder(redisConnectionFactory)
         .cacheDefaults(config)
         .withCacheConfiguration("products",
-            config.entryTtl(Duration.ofMinutes(60)))
+            config.entryTtl(Duration.ofMinutes(30)))
         .withCacheConfiguration("inventory",
-            config.entryTtl(Duration.ofMinutes(15)))
+            config.entryTtl(Duration.ofMinutes(10)))
         .withCacheConfiguration("categories",
-            config.entryTtl(Duration.ofHours(2)))
+            config.entryTtl(Duration.ofMinutes(60)))
         .withCacheConfiguration("brands",
-            config.entryTtl(Duration.ofHours(2)))
+            config.entryTtl(Duration.ofMinutes(60)))
         .build();
   }
 }

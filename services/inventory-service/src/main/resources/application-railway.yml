@@ -11,6 +11,13 @@ spring:
     username: ${POSTGRES_USERNAME:flagship_user}
     password: ${POSTGRES_PASSWORD:flagship_password}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
   
   jpa:
     hibernate:
@@ -19,11 +26,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
         jdbc:
           batch_size: 20
         order_inserts: true
         order_updates: true
+        connection:
+          provider_disables_autocommit: true
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        temp:
+          use_jdbc_metadata_defaults: false
   
   security:
     oauth2:
@@ -39,15 +53,19 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       retries: 3
-      batch-size: 16384
-      linger-ms: 5
-      buffer-memory: 33554432
+      batch-size: 8192
+      linger-ms: 10
+      buffer-memory: 8388608
+      compression-type: gzip
     consumer:
       group-id: inventory-service-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
       enable-auto-commit: false
+      max-poll-records: 100
+      fetch-max-wait: 500
+      fetch-min-size: 1024
       properties:
         spring.json.trusted.packages: "com.flagship.inventory.event"
 
@@ -59,21 +77,22 @@ spring:
       timeout: 2000ms
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
+          max-active: 4
+          max-idle: 2
           min-idle: 0
+          max-wait: 1000ms
 
   cache:
     type: redis
     redis:
-      time-to-live: 1800000 # 30 minutes in milliseconds
+      time-to-live: 900000 # 15 minutes in milliseconds
       cache-null-values: false
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,env
   endpoint:
     health:
       show-details: always
@@ -88,6 +107,17 @@ management:
         http.server.requests: 0.5, 0.95, 0.99
       slo:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
+  jvm:
+    memory:
+      enabled: true
+  server:
+    tomcat:
+      threads:
+        max: 20
+        min-spare: 5
+      max-connections: 100
+      accept-count: 50
+      connection-timeout: 20000
 
 eureka:
   client:
@@ -101,10 +131,12 @@ eureka:
 
 logging:
   level:
-    com.flagship.inventory: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.kafka: INFO
-    org.springframework.cache: DEBUG
+    com.flagship.inventory: INFO
+    org.springframework.security: WARN
+    org.springframework.kafka: WARN
+    org.springframework.cache: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

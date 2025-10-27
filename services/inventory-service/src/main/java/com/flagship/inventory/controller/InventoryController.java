@@ -11,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -172,10 +170,10 @@ public class InventoryController {
   }
 
   @GetMapping("/products")
-  public ResponseEntity<List<Product>> getAllProducts() {
-    log.debug("Getting all products");
+  public ResponseEntity<Page<Product>> getAllProducts(Pageable pageable) {
+    log.debug("Getting all products with pagination: {}", pageable);
 
-    List<Product> products = inventoryService.findAllProducts();
+    Page<Product> products = inventoryService.findAllProducts(pageable);
     return ResponseEntity.ok(products);
   }
 
