@@ -39,15 +39,16 @@ spring:
       timeout: 2000ms
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
+          max-active: 4
+          max-idle: 2
           min-idle: 0
+          max-wait: 1000ms
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,gateway
+        include: health,info,metrics,prometheus,gateway,env
   endpoint:
     health:
       probes:
@@ -68,12 +69,17 @@ management:
     metrics:
       export:
         enabled: true
+  jvm:
+    memory:
+      enabled: true
 
 logging:
   level:
-    com.flagship.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
+    com.flagship.gateway: INFO
+    org.springframework.cloud.gateway: WARN
+    org.springframework.security: WARN
+    org.springframework.web.reactive: WARN
+    reactor.netty: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -94,39 +100,59 @@ resilience4j:
       user-service-cb:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
       order-service-cb:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
       payment-service-cb:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
       inventory-service-cb:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
       streaming-service-cb:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
 
   ratelimiter:
     instances:
       default:
-        limit-for-period: 10
+        limit-for-period: 5
         limit-refresh-period: 1s
         timeout-duration: 0s
         register-health-indicator: true
 
 spring.cloud.gateway:
   redis-rate-limiter:
-    replenish-rate: 10
-    burst-capacity: 20
+    replenish-rate: 5
+    burst-capacity: 10
     requested-tokens: 1
+  httpclient:
+    connect-timeout: 5000
+    response-timeout: 10s
+    pool:
+      max-connections: 50
+      max-idle-time: 30s
+      max-life-time: 60s
+  webflux:
+    base-path: /
+  metrics:
+    enabled: true
+
+server:
+  netty:
+    connection-timeout: 20000
+    max-initial-line-length: 4096
+    max-header-size: 8192
+    max-chunk-size: 8192
+    initial-buffer-size: 128
+    enable-access-log: false

@@ -119,8 +119,8 @@ public class GatewayConfig {
   @ConditionalOnExpression("!'${spring.data.redis.host:}'.isEmpty()")
   public RedisRateLimiter redisRateLimiter() {
     return new RedisRateLimiter(
+        5,
         10,
-        20,
         1);
   }
 
