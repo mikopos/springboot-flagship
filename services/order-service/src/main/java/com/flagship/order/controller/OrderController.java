@@ -63,11 +63,11 @@ public class OrderController {
   }
 
   @GetMapping("/my-orders")
-  public ResponseEntity<List<Order>> getMyOrders(@AuthenticationPrincipal Jwt jwt) {
+  public ResponseEntity<Page<Order>> getMyOrders(@AuthenticationPrincipal Jwt jwt, Pageable pageable) {
     String userId = jwt.getClaim("sub");
-    log.debug("Getting orders for user: {}", userId);
+    log.debug("Getting orders for user: {} with pagination: {}", userId, pageable);
 
-    List<Order> orders = orderService.findByUserId(Long.valueOf(userId));
+    Page<Order> orders = orderService.findByUserId(Long.valueOf(userId), pageable);
     return ResponseEntity.ok(orders);
   }
 
@@ -167,8 +167,7 @@ public class OrderController {
     log.debug("Getting all orders with pagination: {}", pageable);
 
     //TODO This would need to be implemented in OrderService with pagination support
-    List<Order> orders = orderService.findByStatus(Order.OrderStatus.PENDING);
-    // For now, return orders without pagination
+    // For now, return empty page to avoid memory issues
     return ResponseEntity.ok(Page.empty());
   }
 

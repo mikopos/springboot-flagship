@@ -10,11 +10,12 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Order Service
@@ -67,6 +68,11 @@ public class OrderService {
   @Transactional(readOnly = true)
   public List<Order> findByUserId(Long userId) {
     return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Order> findByUserId(Long userId, Pageable pageable) {
+    return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
   }
 
   public Order updateOrderStatus(Long orderId, Order.OrderStatus newStatus) {
@@ -225,6 +231,7 @@ public class OrderService {
 
   private void publishOrderEvent(Order order, OrderEvent.OrderEventType eventType) {
     try {
+      // Create lightweight event with only essential data
       OrderEvent event = OrderEvent.builder()
           .orderId(order.getId())
           .orderNumber(order.getOrderNumber())
@@ -235,11 +242,6 @@ public class OrderService {
           .currency(order.getCurrency())
           .status(order.getStatus().toString())
           .paymentStatus(order.getPaymentStatus().toString())
-          .shippingAddress(order.getShippingAddress())
-          .billingAddress(order.getBillingAddress())
-          .paymentMethod(order.getPaymentMethod())
-          .shippingMethod(order.getShippingMethod())
-          .trackingNumber(order.getTrackingNumber())
           .build();
 
       kafkaTemplate.send("order-events", event);

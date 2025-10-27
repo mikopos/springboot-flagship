@@ -43,13 +43,15 @@ spec:
               key: password
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
           value: "kafka:9092"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx200m -Xms64m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -Djava.security.egd=file:/dev/./urandom"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /actuator/health
