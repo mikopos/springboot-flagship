@@ -1,6 +1,13 @@
 server:
   port: ${PORT:8081}
   address: 0.0.0.0
+  netty:
+    connection-timeout: 20000
+    max-initial-line-length: 4096
+    max-header-size: 8192
+    max-chunk-size: 8192
+    initial-buffer-size: 128
+    enable-access-log: false
 
 spring:
   application:
@@ -137,12 +144,3 @@ spring.cloud.gateway:
     base-path: /
   metrics:
     enabled: true
-
-server:
-  netty:
-    connection-timeout: 20000
-    max-initial-line-length: 4096
-    max-header-size: 8192
-    max-chunk-size: 8192
-    initial-buffer-size: 128
-    enable-access-log: false
