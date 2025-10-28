@@ -1,10 +1,10 @@
 server:
-  port: ${PORT:8084}
+  port: ${PORT:8082}
   address: 0.0.0.0
 
 spring:
   application:
-    name: ${APP_NAME:payment-service}
+    name: ${APP_NAME:unknown}
   
   datasource:
     url: jdbc:${POSTGRES_URL}
@@ -50,26 +50,13 @@ spring:
       linger-ms: 5
       buffer-memory: 33554432
     consumer:
-      group-id: payment-service-group
+      group-id: user-service-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
       enable-auto-commit: false
       properties:
-        spring.json.trusted.packages: "com.flagship.payment.event"
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 4
-          max-idle: 2
-          min-idle: 0
-          max-wait: 1000ms
-
+        spring.json.trusted.packages: "com.flagship.user.event"
 
 management:
   endpoints:
@@ -103,44 +90,19 @@ eureka:
 
 logging:
   level:
-    com.flagship.payment: DEBUG
+    com.flagship.user: DEBUG
     org.springframework.security: DEBUG
     org.springframework.kafka: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# Resilience4j configuration
-resilience4j:
-  circuitbreaker:
-    instances:
-      payment-provider:
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        permitted-number-of-calls-in-half-open-state: 3
-        automatic-transition-from-open-to-half-open-enabled: true
-        record-exceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - org.springframework.web.client.HttpServerErrorException
-        ignore-exceptions:
-          - java.lang.IllegalArgumentException
-  
-  retry:
-    instances:
-      payment-provider:
-        max-attempts: 3
-        wait-duration: 1s
-        exponential-backoff-multiplier: 2
-        retry-exceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - org.springframework.web.client.HttpServerErrorException
-  
-  timelimiter:
-    instances:
-      payment-provider:
-        timeout-duration: 5s
-        cancel-running-future: true
+keycloak:
+  realm: flagship
+  auth-server-url: http://localhost:8080
+  ssl-required: external
+  resource: flagship-client
+  credentials:
+    secret: your-client-secret
+  use-resource-role-mappings: true
+  bearer-only: true

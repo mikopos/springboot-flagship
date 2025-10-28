@@ -18,8 +18,8 @@ WORKDIR /app
 COPY --from=build /app/services/payment-service/target/*jar app.jar
 
 # Railway provides PORT; bind to it
-ENV PORT=8083
-EXPOSE 8083
+ENV PORT=8084
+EXPOSE 8084
 
 # Optimized JVM settings for Railway memory constraints
 ENV JAVA_TOOL_OPTIONS="-Xmx256m -Xms128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -Djava.security.egd=file:/dev/./urandom"

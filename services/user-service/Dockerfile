@@ -8,18 +8,18 @@ COPY services ./services
 
 # Build just this module (+ parent & deps)
 # -q for quieter logs, -DskipTests for faster CI
-RUN mvn -q -DskipTests -Prailway -pl services/streaming-service -am package
+RUN mvn -q -DskipTests -Prailway -pl services/user-service -am package
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the runnable jar built above
-COPY --from=build /app/services/streaming-service/target/*jar app.jar
+COPY --from=build /app/services/user-service/target/*jar app.jar
 
 # Railway provides PORT; bind to it
-ENV PORT=8086
-EXPOSE 8086
+ENV PORT=8082
+EXPOSE 8082
 
 # Optimized JVM settings for Railway memory constraints
 ENV JAVA_TOOL_OPTIONS="-Xmx256m -Xms128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -Djava.security.egd=file:/dev/./urandom"
