@@ -5,6 +5,9 @@ spring:
         jwt:
           issuer-uri: http://keycloak:8080/realms/flagship
           jwk-set-uri: http://keycloak:8080/realms/flagship/protocol/openid-connect/certs
+  
+  kafka:
+    bootstrap-servers: kafka:9092
 
 logging:
   level:
