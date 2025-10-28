@@ -36,8 +36,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/flagship
-          jwk-set-uri: http://localhost:8080/realms/flagship/protocol/openid-connect/certs
+          issuer-uri: ${JWT_ISSUER:http://localhost:8080/realms/flagship}
+          jwk-set-uri: ${JWK_URI:http://localhost:8080/realms/flagship/protocol/openid-connect/certs}
   
   kafka:
     bootstrap-servers: ${BOOTSTRAP_SERVERS:localhost:9092}
@@ -99,10 +99,10 @@ logging:
 
 keycloak:
   realm: flagship
-  auth-server-url: http://localhost:8080
+  auth-server-url: ${KC_HOSTNAME:http://localhost:8080}
   ssl-required: external
   resource: flagship-client
   credentials:
-    secret: your-client-secret
+    secret: ${KC_SECRET}
   use-resource-role-mappings: true
   bearer-only: true
