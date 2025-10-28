@@ -2,8 +2,6 @@ package com.flagship.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-
 /**
  * API Gateway Application
  * <p>
@@ -15,7 +13,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * @version 1.0.0
  */
 @SpringBootApplication
-@EnableDiscoveryClient
 public class ApiGatewayApplication {
 
   public static void main(String[] args) {
