@@ -16,6 +16,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/flagship
+          jwk-set-uri: http://localhost:8080/realms/flagship/protocol/openid-connect/certs
   
   data:
     redis:

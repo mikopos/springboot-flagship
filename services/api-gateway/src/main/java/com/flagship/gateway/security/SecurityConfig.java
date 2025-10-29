@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
@@ -16,10 +17,6 @@ import org.springframework.security.web.server.authentication.HttpStatusServerEn
 
 /**
  * Security Configuration for API Gateway
- * <p>
- * Configures JWT-based authentication and authorization for the gateway. This includes: - JWT token
- * validation - Public endpoints that don't require authentication - Custom authentication entry
- * point - CORS configuration
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -31,7 +28,7 @@ public class SecurityConfig {
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
-        .csrf(csrf -> csrf.disable())
+        .csrf(CsrfSpec::disable)
         .cors(cors -> {})
         .authorizeExchange(exchanges -> exchanges
             // Public endpoints
@@ -63,7 +60,6 @@ public class SecurityConfig {
         .withJwkSetUri(jwtIssuerUri + "/protocol/openid-connect/certs")
         .build();
 
-    // Add issuer validation
     OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(
         jwtIssuerUri);
     jwtDecoder.setJwtValidator(issuerValidator);
