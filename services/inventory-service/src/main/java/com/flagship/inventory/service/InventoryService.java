@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Inventory Service
@@ -246,6 +248,11 @@ public class InventoryService {
   }
 
   @Transactional(readOnly = true)
+  public Page<Product> findAllProducts(Pageable pageable) {
+    return productRepository.findAll(pageable);
+  }
+
+  @Transactional(readOnly = true)
   public List<Product> findProductsByCategory(String category) {
     return productRepository.findByCategoryOrderByName(category);
   }
@@ -267,6 +274,7 @@ public class InventoryService {
 
   private void publishInventoryEvent(Product product, InventoryEvent.InventoryEventType eventType) {
     try {
+      // Create lightweight event with only essential data
       InventoryEvent event = InventoryEvent.builder()
           .productId(product.getId())
           .sku(product.getSku())
@@ -274,13 +282,9 @@ public class InventoryService {
           .timestamp(LocalDateTime.now())
           .productName(product.getName())
           .category(product.getCategory())
-          .brand(product.getBrand())
-          .price(product.getPrice())
-          .currency(product.getCurrency())
           .status(product.getStatus().toString())
           .totalQuantity(product.getTotalQuantity())
           .availableQuantity(product.getTotalAvailableQuantity())
-          .reservedQuantity(product.getTotalReservedQuantity())
           .build();
 
       kafkaTemplate.send("inventory-events", event);

@@ -29,15 +29,15 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "k8s"
-        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: "http://eureka:8761/eureka"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx200m -Xms64m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -Djava.security.egd=file:/dev/./urandom -Dreactor.netty.ioWorkerCount=2"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /actuator/health
