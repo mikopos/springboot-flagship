@@ -42,7 +42,7 @@ subprojects {
             dependency "org.keycloak:keycloak-spring-boot-starter:23.0.0"
             dependency "io.github.resilience4j:resilience4j-spring-boot3:2.1.0"
             dependency "io.micrometer:micrometer-registry-prometheus:1.12.0"
-            dependency "org.projectlombok:lombok:1.18.36"
+            dependency "org.projectlombok:lombok:1.18.42"
         }
     }
     

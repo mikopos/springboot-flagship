@@ -2,6 +2,7 @@ package com.flagship.gateway.filter;
 
 import java.time.Duration;
 import java.time.Instant;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -25,8 +26,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 public class LoggingFilter implements GlobalFilter, Ordered {
-
-    private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
 
   private static final String START_TIME = "startTime";
   private static final String USER_ID = "userId";
