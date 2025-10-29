@@ -1,5 +1,6 @@
 package com.flagship.gateway.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -24,13 +25,14 @@ import org.springframework.security.web.server.authentication.HttpStatusServerEn
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-  private static final String JWT_ISSUER_URI = "http://localhost:8080/realms/flagship";
+  @Value("${jwt.issuer-uri:http://localhost:8080/realms/flagship}")
+  private String jwtIssuerUri;
 
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
-        .csrf().disable()
-        .cors().and()
+        .csrf(csrf -> csrf.disable())
+        .cors(cors -> {})
         .authorizeExchange(exchanges -> exchanges
             // Public endpoints
             .pathMatchers(
@@ -58,12 +60,12 @@ public class SecurityConfig {
   @Bean
   public ReactiveJwtDecoder jwtDecoder() {
     NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-        .withJwkSetUri(JWT_ISSUER_URI + "/protocol/openid-connect/certs")
+        .withJwkSetUri(jwtIssuerUri + "/protocol/openid-connect/certs")
         .build();
 
     // Add issuer validation
     OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(
-        JWT_ISSUER_URI);
+        jwtIssuerUri);
     jwtDecoder.setJwtValidator(issuerValidator);
 
     return jwtDecoder;

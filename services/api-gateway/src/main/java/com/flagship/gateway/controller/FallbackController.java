@@ -1,6 +1,7 @@
 package com.flagship.gateway.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/fallback")
 public class FallbackController {
+
+    private static final Logger log = LoggerFactory.getLogger(FallbackController.class);
 
     @GetMapping("/{serviceName}")
     public Mono<ResponseEntity<Map<String, Object>>> fallback(@PathVariable String serviceName) {

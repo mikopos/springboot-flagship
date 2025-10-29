@@ -34,6 +34,68 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Gradle build outputs
+**/build/
+!**/src/**/build/
+
+# Gradle daemon
+.gradle/daemon/
+
+# Gradle cache
+.gradle/caches/
+
+# Gradle wrapper (keep wrapper files)
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Gradle test results
+**/build/test-results/
+**/build/reports/
+
+# Gradle temporary files
+.gradle/tmp/
+
+# Gradle build scans
+.gradle/build-scan-data/
+
+# Gradle user home
+.gradle/
+
+# Gradle wrapper properties (keep the file but ignore local changes)
+gradle.properties
+
+# Spring Boot specific
+spring-boot-starter-*.jar
+
+# Application specific
+application-local.properties
+application-local.yml
+application-local.yaml
+
+# Logs
+*.log
+logs/
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+**/build/jacoco/
+**/build/reports/jacoco/
+
+# Dependency directories
+node_modules/
+
+# Maven (legacy - keeping for reference)
 /services/api-gateway/target/
 /services/inventory-service/target/
 /services/order-service/target/

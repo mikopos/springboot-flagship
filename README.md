@@ -1,7 +1,8 @@
 # 🚀 Spring Boot Microservices Flagship Project
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Gradle](https://img.shields.io/badge/Gradle-8.5-blue.svg)](https://gradle.org/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
 [![CI Pipeline](https://github.com/mikopos/springboot-flagship/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/mikopos/springboot-flagship/actions/workflows/ci-cd.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -221,7 +222,7 @@ graph TB
 - **Spring Kafka** - Event-driven messaging
 - **Spring WebFlux** - Reactive programming for streaming
 - **Hibernate** - ORM framework
-- **Maven** - Build and dependency management
+- **Gradle** - Build and dependency management
 
 ### Databases & Caching
 - **PostgreSQL 15** - Primary relational database
@@ -337,7 +338,7 @@ Before running this project, ensure you have the following installed:
 
 - **Java 21**
 - **Docker** and **Docker Compose**
-- **Maven 3.9+**
+- **Gradle 8.5+**
 - **Git**
 
 ### Option 1: Docker Compose (Recommended)
@@ -378,15 +379,15 @@ Before running this project, ensure you have the following installed:
 2. **Build and run services locally**
    ```bash
    # Build all services
-   mvn clean package -DskipTests
+   ./gradlew build -x test
    
    # Run each service (in separate terminals)
-   java -jar services/api-gateway/target/api-gateway-1.0.0.jar
-   java -jar services/user-service/target/user-service-1.0.0.jar
-   java -jar services/order-service/target/order-service-1.0.0.jar
-   java -jar services/payment-service/target/payment-service-1.0.0.jar
-   java -jar services/inventory-service/target/inventory-service-1.0.0.jar
-   java -jar services/streaming-service/target/streaming-service-1.0.0.jar
+   java -jar services/api-gateway/build/libs/api-gateway-1.0.0.jar
+   java -jar services/user-service/build/libs/user-service-1.0.0.jar
+   java -jar services/order-service/build/libs/order-service-1.0.0.jar
+   java -jar services/payment-service/build/libs/payment-service-1.0.0.jar
+   java -jar services/inventory-service/build/libs/inventory-service-1.0.0.jar
+   java -jar services/streaming-service/build/libs/streaming-service-1.0.0.jar
    ```
 
 ## 🔧 Configuration
@@ -425,10 +426,10 @@ The application supports multiple profiles:
 ### Run Tests
 ```bash
 # Run all tests
-mvn test
+./gradlew test
 
 # Run tests for specific service
-mvn test -pl services/user-service
+./gradlew :services:user-service:test
 
 # Run with Docker
 docker-compose -f docker-compose.test.yml up --abort-on-container-exit
@@ -513,7 +514,7 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 The project includes a comprehensive GitHub Actions workflow:
 
 1. **Code Quality Checks**
-   - Maven compilation
+   - Gradle compilation
    - Unit tests execution
    - Code coverage reporting
 
@@ -543,7 +544,11 @@ springboot-flagship/
 ├── docs/                       # Documentation
 ├── scripts/                    # Helper scripts
 ├── docker-compose.yml          # Docker Compose configuration
-├── pom.xml                     # Parent Maven POM
+├── build.gradle                # Root Gradle build file
+├── settings.gradle             # Gradle settings
+├── gradlew                     # Gradle wrapper
+├── gradlew.bat                 # Gradle wrapper (Windows)
+├── gradle/                     # Gradle wrapper files
 └── README.md                   # This file
 ```
 
@@ -554,7 +559,7 @@ springboot-flagship/
 1. **Prerequisites Setup**
     - Install Docker and Docker Compose
     - Install Java 21
-    - Install Maven 3.9+
+    - Install Gradle 8.5+ (or use the included wrapper)
 
 
 2. **Clone and Start**
