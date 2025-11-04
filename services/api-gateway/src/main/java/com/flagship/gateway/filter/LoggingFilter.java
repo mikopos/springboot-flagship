@@ -2,7 +2,9 @@ package com.flagship.gateway.filter;
 
 import java.time.Duration;
 import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -11,22 +13,20 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import com.flagship.gateway.service.JwtService;
 
 /**
  * Logging Filter for API Gateway
- * <p>
- * Global filter that logs all incoming requests and outgoing responses. Provides comprehensive
- * logging for monitoring, debugging, and audit purposes.
- * <p>
- * Features: - Request/response logging - Performance metrics (response time) - User identification
- * from JWT - Error tracking
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class LoggingFilter implements GlobalFilter, Ordered {
 
   private static final String START_TIME = "startTime";
   private static final String USER_ID = "userId";
+
+  private final JwtService jwtService;
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -35,16 +35,15 @@ public class LoggingFilter implements GlobalFilter, Ordered {
 
     exchange.getAttributes().put(START_TIME, Instant.now());
 
-    String userId = extractUserId(request);
-    if (userId != null) {
-      exchange.getAttributes().put(USER_ID, userId);
-    }
-
-    logRequest(request, userId);
-
-    return chain.filter(exchange).then(
-        Mono.fromRunnable(() -> logResponse(exchange, response))
-    );
+    return extractUserId(request)
+        .doOnNext(userId -> {
+          if (userId != null) {
+            exchange.getAttributes().put(USER_ID, userId);
+          }
+          logRequest(request, userId);
+        })
+        .then(chain.filter(exchange))
+        .then(Mono.fromRunnable(() -> logResponse(exchange, response)));
   }
 
   private void logRequest(ServerHttpRequest request, String userId) {
@@ -74,19 +73,22 @@ public class LoggingFilter implements GlobalFilter, Ordered {
     }
   }
 
-  private String extractUserId(ServerHttpRequest request) {
+  private Mono<String> extractUserId(ServerHttpRequest request) {
     String authHeader = request.getHeaders().getFirst("Authorization");
     if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      try {
-        // In a real implementation, you would decode the JWT token
-        String token = authHeader.substring(7);
-        // This is a simplified extraction. In production, use proper JWT decoding
-        return "user-" + token.hashCode();
-      } catch (Exception e) {
-        log.warn("Failed to extract user ID from JWT token", e);
-      }
+      String token = authHeader.substring(7);
+      return jwtService.extractUserId(token)
+          .doOnNext(userId -> {
+            if (userId != null) {
+              log.debug("Successfully extracted user ID: {} from JWT token", userId);
+            } else {
+              log.debug("No user ID found in JWT token");
+            }
+          })
+          .doOnError(error -> log.warn("Failed to extract user ID from JWT token: {}", error.getMessage()))
+          .onErrorReturn(null);
     }
-    return null;
+    return Mono.just(null);
   }
 
   @Override

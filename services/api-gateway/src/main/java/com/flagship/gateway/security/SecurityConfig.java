@@ -1,10 +1,12 @@
 package com.flagship.gateway.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
@@ -15,22 +17,19 @@ import org.springframework.security.web.server.authentication.HttpStatusServerEn
 
 /**
  * Security Configuration for API Gateway
- * <p>
- * Configures JWT-based authentication and authorization for the gateway. This includes: - JWT token
- * validation - Public endpoints that don't require authentication - Custom authentication entry
- * point - CORS configuration
  */
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-  private static final String JWT_ISSUER_URI = "http://localhost:8080/realms/flagship";
+  @Value("${jwt.issuer-uri:http://localhost:8080/realms/flagship}")
+  private String jwtIssuerUri;
 
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
-        .csrf().disable()
-        .cors().and()
+        .csrf(CsrfSpec::disable)
+        .cors(cors -> {})
         .authorizeExchange(exchanges -> exchanges
             // Public endpoints
             .pathMatchers(
@@ -58,12 +57,11 @@ public class SecurityConfig {
   @Bean
   public ReactiveJwtDecoder jwtDecoder() {
     NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-        .withJwkSetUri(JWT_ISSUER_URI + "/protocol/openid-connect/certs")
+        .withJwkSetUri(jwtIssuerUri + "/protocol/openid-connect/certs")
         .build();
 
-    // Add issuer validation
     OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(
-        JWT_ISSUER_URI);
+        jwtIssuerUri);
     jwtDecoder.setJwtValidator(issuerValidator);
 
     return jwtDecoder;

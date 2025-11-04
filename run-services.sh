@@ -12,37 +12,37 @@ echo "Starting microservices..."
 
 echo "Starting API Gateway..."
 cd services/api-gateway
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 API_GATEWAY_PID=$!
 cd ../..
 
 echo "Starting User Service..."
 cd services/user-service
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 USER_SERVICE_PID=$!
 cd ../..
 
 echo "Starting Order Service..."
 cd services/order-service
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 ORDER_SERVICE_PID=$!
 cd ../..
 
 echo "Starting Payment Service..."
 cd services/payment-service
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 PAYMENT_SERVICE_PID=$!
 cd ../..
 
 echo "Starting Inventory Service..."
 cd services/inventory-service
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 INVENTORY_SERVICE_PID=$!
 cd ../..
 
 echo "Starting Streaming Service..."
 cd services/streaming-service
-mvn spring-boot:run -Dspring-boot.run.profiles=docker &
+gradle bootRun --args='--spring.profiles.active=docker' &
 STREAMING_SERVICE_PID=$!
 cd ../..
 

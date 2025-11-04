@@ -1,21 +1,26 @@
 # ---------- Build stage ----------
-FROM maven:3.9.9-eclipse-temurin-21 AS build
+FROM gradle:8.5-jdk21 AS build
 WORKDIR /app
 
-# Copy only files needed for a fast, cacheable build
-COPY pom.xml ./
-COPY services ./services
+# Copy Gradle files
+COPY build.gradle settings.gradle ./
+COPY services/api-gateway/build.gradle ./services/api-gateway/
 
-# Build just this module (+ parent & deps)
-# -q for quieter logs, -DskipTests for faster CI
-RUN mvn -q -DskipTests -Prailway -pl services/api-gateway -am package
+# Download dependencies (this layer will be cached if build.gradle doesn't change)
+RUN gradle dependencies --no-daemon
+
+# Copy source code
+COPY services/api-gateway/src ./services/api-gateway/src
+
+# Build the application
+RUN gradle :services:api-gateway:bootJar --no-daemon
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the runnable jar built above
-COPY --from=build /app/services/api-gateway/target/*jar app.jar
+COPY --from=build /app/services/api-gateway/build/libs/*.jar app.jar
 
 # Railway provides PORT; bind to it
 ENV PORT=8081
