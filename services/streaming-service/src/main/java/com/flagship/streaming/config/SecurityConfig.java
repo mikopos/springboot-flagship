@@ -2,6 +2,7 @@ package com.flagship.streaming.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -10,6 +11,11 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.csrf.CsrfWebFilter;
+import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -32,13 +38,14 @@ public class SecurityConfig {
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
-        .csrf(csrf -> csrf.disable())
+        .csrf(csrf -> csrf.requireCsrfProtectionMatcher(csrfProtectionMatcher()))
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeExchange(exchanges -> exchanges
             .pathMatchers(
                 "/actuator/health",
                 "/actuator/info",
-                "/api/stream/health"
+                "/api/stream/health",
+                ""
             ).permitAll()
             .anyExchange().authenticated()
         )
@@ -50,6 +57,19 @@ public class SecurityConfig {
             )
         )
         .build();
+  }
+
+
+  private static ServerWebExchangeMatcher csrfProtectionMatcher() {
+    ServerWebExchangeMatcher bearerToken = exchange -> {
+      String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+      return authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7)
+          ? MatchResult.match()
+          : MatchResult.notMatch();
+    };
+    return new AndServerWebExchangeMatcher(
+        CsrfWebFilter.DEFAULT_CSRF_MATCHER,
+        new NegatedServerWebExchangeMatcher(bearerToken));
   }
 
   @Bean
@@ -80,7 +100,7 @@ public class SecurityConfig {
     configuration.setAllowedOriginPatterns(Arrays.asList("*"));
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(Arrays.asList("*"));
-    configuration.setAllowCredentials(true);
+    configuration.setAllowCredentials(false);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);

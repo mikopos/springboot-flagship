@@ -25,7 +25,7 @@ spring:
             allowed-origins: "*"
             allowed-methods: "*"
             allowed-headers: "*"
-            allow-credentials: true
+            allow-credentials: false
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Response-Default-Foo, Default-Bar

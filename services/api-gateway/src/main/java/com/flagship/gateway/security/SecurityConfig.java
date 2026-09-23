@@ -3,10 +3,10 @@ package com.flagship.gateway.security;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
@@ -14,6 +14,11 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
+import org.springframework.security.web.server.csrf.CsrfWebFilter;
+import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult;
 
 /**
  * Security Configuration for API Gateway
@@ -28,7 +33,7 @@ public class SecurityConfig {
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
     return http
-        .csrf(CsrfSpec::disable)
+        .csrf(csrf -> csrf.requireCsrfProtectionMatcher(csrfProtectionMatcher()))
         .cors(cors -> {})
         .authorizeExchange(exchanges -> exchanges
             // Public endpoints
@@ -52,6 +57,19 @@ public class SecurityConfig {
             .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED))
         )
         .build();
+  }
+
+
+  private static ServerWebExchangeMatcher csrfProtectionMatcher() {
+    ServerWebExchangeMatcher bearerToken = exchange -> {
+      String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+      return authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7)
+          ? MatchResult.match()
+          : MatchResult.notMatch();
+    };
+    return new AndServerWebExchangeMatcher(
+        CsrfWebFilter.DEFAULT_CSRF_MATCHER,
+        new NegatedServerWebExchangeMatcher(bearerToken));
   }
 
   @Bean
